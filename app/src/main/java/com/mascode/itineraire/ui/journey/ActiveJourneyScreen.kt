@@ -58,6 +58,8 @@ import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
+import kotlin.math.roundToLong
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -310,10 +312,19 @@ private fun JourneySummaryCard(state: ActiveJourneyUiState, now: Instant) {
             )
             Text("Départ : ${formatTime(journey.startedAt)}")
             Text("Durée totale : ${formatDuration(Duration.between(journey.startedAt, end))}")
+            state.estimatedDistanceMeters?.let { distance ->
+                Text("Distance estimée : ${formatDistance(distance)} (à vol d'oiseau)")
+            }
             Text("Coût total : ${formatCost(state.totalCost)}", style = MaterialTheme.typography.titleMedium)
             Text(statusLabel(journey.status), color = statusColor(journey.status))
         }
     }
+}
+
+private fun formatDistance(distanceMeters: Double): String = if (distanceMeters < 1_000) {
+    "${distanceMeters.roundToLong()} m"
+} else {
+    String.format(Locale.FRENCH, "%.2f km", distanceMeters / 1_000)
 }
 
 @Composable

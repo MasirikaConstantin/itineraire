@@ -8,6 +8,7 @@ import com.mascode.itineraire.data.local.entity.JourneyObservationEntity
 import com.mascode.itineraire.data.local.entity.PlaceEntity
 import com.mascode.itineraire.data.repository.JourneyRepository
 import com.mascode.itineraire.data.repository.PlaceRepository
+import com.mascode.itineraire.domain.geo.haversineDistanceMeters
 import com.mascode.itineraire.domain.model.ObservationType
 import com.mascode.itineraire.domain.model.TransportMode
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,11 +32,43 @@ data class ActiveJourneyUiState(
     val totalCost: Long
         get() = legs.sumOf(JourneyLegEntity::cost)
 
+    val estimatedDistanceMeters: Double?
+        get() {
+            val currentJourney = journey ?: return null
+            val placesById = places.associateBy(PlaceEntity::id)
+            val legDistances = legs.map { leg ->
+                distanceBetween(
+                    placesById[leg.sourcePlaceId],
+                    placesById[leg.destinationPlaceId],
+                )
+            }
+            if (legDistances.isNotEmpty() && legDistances.all { it != null }) {
+                return legDistances.sumOf { it ?: 0.0 }
+            }
+            return distanceBetween(
+                placesById[currentJourney.sourcePlaceId],
+                placesById[currentJourney.destinationPlaceId],
+            )
+        }
+
     val nextSourcePlaceId: String?
         get() = legs.lastOrNull()?.destinationPlaceId ?: journey?.sourcePlaceId
 
     val hasReachedFinalDestination: Boolean
         get() = legs.lastOrNull()?.destinationPlaceId == journey?.destinationPlaceId
+}
+
+private fun distanceBetween(start: PlaceEntity?, end: PlaceEntity?): Double? {
+    val startLatitude = start?.latitude ?: return null
+    val startLongitude = start.longitude ?: return null
+    val endLatitude = end?.latitude ?: return null
+    val endLongitude = end.longitude ?: return null
+    return haversineDistanceMeters(
+        startLatitude = startLatitude,
+        startLongitude = startLongitude,
+        endLatitude = endLatitude,
+        endLongitude = endLongitude,
+    )
 }
 
 class ActiveJourneyViewModel(
