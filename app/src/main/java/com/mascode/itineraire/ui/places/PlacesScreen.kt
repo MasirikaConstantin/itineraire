@@ -41,7 +41,7 @@ fun PlacesScreen(viewModel: PlacesViewModel, modifier: Modifier = Modifier) {
         item {
             Spacer(Modifier.height(8.dp))
             Text("Mes lieux", style = MaterialTheme.typography.headlineMedium)
-            Text("Enregistrez Maison, ISC, travail ou vos arrêts habituels.")
+            Text("Enregistrez vos sources (Ex : Maison)ou vos arrêts habituels(Ex : Rond - Point,...).")
             Spacer(Modifier.height(12.dp))
             Button(onClick = { showDialog = true }, modifier = Modifier.fillMaxWidth()) { Text("Ajouter un lieu") }
         }
