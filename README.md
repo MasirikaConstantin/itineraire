@@ -142,7 +142,7 @@ La position facultative prépare le calcul des distances entre les lieux. Elle n
 
 La création et la modification d'un lieu utilisent une page dédiée. Un lieu peut être enregistré sans coordonnées. Lorsque l'utilisateur se trouve à cet endroit, il peut employer **Utiliser ma position actuelle** pour ajouter ses coordonnées. Cette position peut ensuite être remplacée ou retirée en modifiant le lieu depuis la liste.
 
-La localisation est demandée uniquement après une action explicite sur **Utiliser ma position actuelle**. Une position approximative reste acceptée, aucun accès en arrière-plan n'est demandé et aucun suivi continu n'est effectué. Les coordonnées retenues sont enregistrées avec le lieu dans la base Room locale afin de permettre plus tard le calcul des distances.
+La localisation est demandée uniquement après une action explicite sur **Utiliser ma position actuelle**. L'application interroge les fournisseurs fusionné, réseau et GPS disponibles au lieu d'attendre uniquement un signal satellite. Une position très récente du téléphone peut être utilisée immédiatement ; après un délai maximal, une position mémorisée depuis moins de dix minutes sert de secours et l'interface l'indique clairement. Une position approximative reste acceptée, aucun accès en arrière-plan n'est demandé et aucun suivi continu n'est effectué. Les coordonnées retenues sont enregistrées avec le lieu dans la base Room locale afin de permettre plus tard le calcul des distances.
 
 ## Sécurité et authentification
 
