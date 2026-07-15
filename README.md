@@ -129,6 +129,7 @@ La version actuelle permet de :
 - décomposer un trajet en tronçons avec lieux, transport, horaires, durée, prix en CDF et notes ;
 - signaler les embouteillages, attentes, pannes, problèmes météo et autres observations ;
 - consulter le résumé détaillé et le coût total d'un trajet depuis l'historique ;
+- consulter dans le résumé la distance Haversine estimée lorsque les lieux possèdent une position ;
 - consulter un premier écran de paramètres ;
 - choisir un thème clair, sombre ou synchronisé avec celui du téléphone ;
 - consulter la politique de confidentialité directement dans les paramètres ;
@@ -136,7 +137,7 @@ La version actuelle permet de :
 - parcourir les journées avec les flèches de l'accueil ou sélectionner directement une date dans le calendrier ;
 - conserver toutes les informations dans une base Room locale.
 
-La position facultative prépare le calcul des distances entre les lieux. Elle n'est pas nécessaire pour enregistrer ou utiliser un lieu.
+La position facultative permet de calculer dans le résumé une distance à vol d'oiseau avec la formule de Haversine. Lorsque tous les tronçons sont localisés, leurs distances sont additionnées ; sinon, le calcul relie directement la source et la destination finales si leurs positions sont disponibles. Cette estimation ne représente pas la longueur réelle du réseau routier. Une position n'est pas nécessaire pour enregistrer ou utiliser un lieu.
 
 ## Géolocalisation facultative
 
