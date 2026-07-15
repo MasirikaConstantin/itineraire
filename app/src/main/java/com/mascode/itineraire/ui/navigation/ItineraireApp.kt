@@ -6,6 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -27,6 +28,7 @@ import com.mascode.itineraire.ui.history.HistoryScreen
 import com.mascode.itineraire.ui.history.HistoryViewModel
 import com.mascode.itineraire.ui.places.PlacesScreen
 import com.mascode.itineraire.ui.places.PlacesViewModel
+import com.mascode.itineraire.ui.settings.SettingsScreen
 import com.mascode.itineraire.ui.today.TodayScreen
 import com.mascode.itineraire.ui.today.TodayViewModel
 
@@ -34,6 +36,7 @@ private enum class Destination(val route: String, val label: String, val icon: I
     TODAY("today", "Aujourd'hui", Icons.Outlined.Home),
     HISTORY("history", "Historique", Icons.Outlined.History),
     PLACES("places", "Lieux", Icons.Outlined.Place),
+    SETTINGS("settings", "Paramètres", Icons.Outlined.Settings),
 }
 
 @Composable
@@ -84,6 +87,9 @@ fun ItineraireApp(factory: AppViewModelFactory) {
             composable(Destination.PLACES.route) {
                 val viewModel: PlacesViewModel = viewModel(factory = factory)
                 PlacesScreen(viewModel)
+            }
+            composable(Destination.SETTINGS.route) {
+                SettingsScreen()
             }
         }
     }
