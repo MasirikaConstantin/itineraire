@@ -10,8 +10,6 @@ import android.os.CancellationSignal
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
@@ -20,15 +18,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -41,66 +35,56 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mascode.itineraire.domain.model.PlaceCategory
-import kotlinx.coroutines.launch
-import org.maplibre.compose.camera.CameraPosition
-import org.maplibre.compose.camera.rememberCameraState
-import org.maplibre.compose.map.MaplibreMap
-import org.maplibre.compose.style.BaseStyle
-import org.maplibre.compose.util.ClickResult
-import org.maplibre.spatialk.geojson.Position
 import java.util.Locale
-
-private val KINSHASA_POSITION = Position(latitude = -4.325, longitude = 15.322)
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun AddPlaceScreen(
+fun PlaceEditorScreen(
     viewModel: PlacesViewModel,
+    placeId: String? = null,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    var name by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf(PlaceCategory.OTHER) }
-    var includePosition by remember { mutableStateOf(false) }
-    var locationMessage by remember { mutableStateOf<String?>(null) }
-    var mapMessage by remember { mutableStateOf<String?>(null) }
-    val cameraState = rememberCameraState(
-        firstPosition = CameraPosition(target = KINSHASA_POSITION, zoom = 12.0),
-    )
+    val existingPlace = state.places.firstOrNull { it.id == placeId }
+    var initializedPlaceId by remember(placeId) { mutableStateOf<String?>(null) }
+    var name by remember(placeId) { mutableStateOf("") }
+    var category by remember(placeId) { mutableStateOf(PlaceCategory.OTHER) }
+    var latitude by remember(placeId) { mutableStateOf<Double?>(null) }
+    var longitude by remember(placeId) { mutableStateOf<Double?>(null) }
+    var locationMessage by remember(placeId) { mutableStateOf<String?>(null) }
 
-    fun centerOn(location: Location) {
-        includePosition = true
-        locationMessage = null
-        coroutineScope.launch {
-            cameraState.animateTo(
-                cameraState.position.copy(
-                    target = Position(latitude = location.latitude, longitude = location.longitude),
-                    zoom = 16.0,
-                ),
-            )
+    LaunchedEffect(placeId, existingPlace) {
+        if (placeId != null && existingPlace != null && initializedPlaceId != placeId) {
+            name = existingPlace.name
+            category = existingPlace.category
+            latitude = existingPlace.latitude
+            longitude = existingPlace.longitude
+            initializedPlaceId = placeId
         }
     }
 
     fun loadCurrentLocation() {
+        locationMessage = "Recherche de votre position…"
         findCurrentLocation(
             context = context,
-            onLocation = ::centerOn,
+            onLocation = { location ->
+                latitude = location.latitude
+                longitude = location.longitude
+                locationMessage = "Position actuelle enregistrée dans le formulaire."
+            },
             onError = { locationMessage = it },
         )
     }
@@ -111,7 +95,7 @@ fun AddPlaceScreen(
         if (grants.values.any { it }) {
             loadCurrentLocation()
         } else {
-            locationMessage = "La permission a été refusée. Vous pouvez toujours choisir le lieu sur la carte."
+            locationMessage = "La permission de localisation a été refusée. Le lieu peut être enregistré sans position."
         }
     }
 
@@ -121,7 +105,7 @@ fun AddPlaceScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
-                title = { Text("Ajouter un lieu") },
+                title = { Text(if (placeId == null) "Ajouter un lieu" else "Modifier le lieu") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Retour")
@@ -168,94 +152,61 @@ fun AddPlaceScreen(
             item {
                 Text("Position facultative", style = MaterialTheme.typography.titleMedium)
                 Text(
-                    "Elle permettra de calculer les distances plus tard. Aucun suivi en arrière-plan n'est effectué.",
+                    "Enregistrez la position lorsque vous êtes sur place. Vous pourrez aussi l'ajouter ou la remplacer plus tard.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-
-            if (!includePosition) {
+            if (latitude != null && longitude != null) {
                 item {
-                    OutlinedButton(
-                        onClick = { includePosition = true },
+                    Text(
+                        formatCoordinates(latitude!!, longitude!!),
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                    Text("Position enregistrée", color = MaterialTheme.colorScheme.primary)
+                }
+            }
+            item {
+                OutlinedButton(
+                    onClick = {
+                        if (hasLocationPermission(context)) {
+                            loadCurrentLocation()
+                        } else {
+                            permissionLauncher.launch(
+                                arrayOf(
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                                ),
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(Icons.Outlined.MyLocation, contentDescription = null)
+                    Text(if (latitude == null) "  Utiliser ma position actuelle" else "  Mettre à jour avec ma position actuelle")
+                }
+            }
+            if (latitude != null) {
+                item {
+                    TextButton(
+                        onClick = {
+                            latitude = null
+                            longitude = null
+                            locationMessage = null
+                        },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Icon(Icons.Outlined.LocationOn, contentDescription = null)
-                        Text("  Choisir sur la carte")
-                    }
-                }
-            } else {
-                item {
-                    Card(Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(320.dp)
-                                    .clip(RoundedCornerShape(12.dp)),
-                            ) {
-                                MaplibreMap(
-                                    modifier = Modifier.fillMaxSize(),
-                                    baseStyle = BaseStyle.Uri("https://tiles.openfreemap.org/styles/liberty"),
-                                    cameraState = cameraState,
-                                    onMapClick = { position, _ ->
-                                        cameraState.position = cameraState.position.copy(target = position)
-                                        ClickResult.Consume
-                                    },
-                                    onMapLoadFailed = { reason ->
-                                        mapMessage = reason ?: "Impossible de charger la carte."
-                                    },
-                                )
-                                Icon(
-                                    imageVector = Icons.Outlined.LocationOn,
-                                    contentDescription = "Position sélectionnée",
-                                    modifier = Modifier.align(Alignment.Center).size(44.dp),
-                                    tint = MaterialTheme.colorScheme.primary,
-                                )
-                            }
-                            Text(
-                                "Déplacez la carte pour placer l'épingle au bon endroit.",
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                            Text(
-                                formatCoordinates(cameraState.position.target),
-                                style = MaterialTheme.typography.labelMedium,
-                            )
-                            mapMessage?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                            OutlinedButton(
-                                onClick = {
-                                    if (hasLocationPermission(context)) {
-                                        loadCurrentLocation()
-                                    } else {
-                                        permissionLauncher.launch(
-                                            arrayOf(
-                                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                                Manifest.permission.ACCESS_COARSE_LOCATION,
-                                            ),
-                                        )
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Icon(Icons.Outlined.MyLocation, contentDescription = null)
-                                Text("  Utiliser ma position actuelle")
-                            }
-                            TextButton(
-                                onClick = {
-                                    includePosition = false
-                                    locationMessage = null
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Text("Retirer la position")
-                            }
-                        }
+                        Text("Retirer la position")
                     }
                 }
             }
-
             locationMessage?.let { message ->
-                item { Text(message, color = MaterialTheme.colorScheme.error) }
+                item {
+                    Text(
+                        message,
+                        color = if (latitude == null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
             state.errorMessage?.let { message ->
                 item { Text(message, color = MaterialTheme.colorScheme.error) }
@@ -263,19 +214,19 @@ fun AddPlaceScreen(
             item {
                 Button(
                     onClick = {
-                        val position = cameraState.position.target.takeIf { includePosition }
-                        viewModel.addPlace(
+                        viewModel.savePlace(
+                            placeId = placeId,
                             name = name,
                             category = category,
-                            latitude = position?.latitude,
-                            longitude = position?.longitude,
+                            latitude = latitude,
+                            longitude = longitude,
                             onSaved = onBack,
                         )
                     },
-                    enabled = name.isNotBlank(),
+                    enabled = name.isNotBlank() && (placeId == null || initializedPlaceId == placeId),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("Enregistrer le lieu")
+                    Text(if (placeId == null) "Enregistrer le lieu" else "Enregistrer les modifications")
                 }
             }
             item { Spacer(Modifier.height(16.dp)) }
@@ -305,7 +256,7 @@ private fun findCurrentLocation(
         manager.isProviderEnabled(LocationManager.GPS_PROVIDER) -> LocationManager.GPS_PROVIDER
         manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) -> LocationManager.NETWORK_PROVIDER
         else -> {
-            onError("Activez la localisation du téléphone, ou choisissez la position manuellement sur la carte.")
+            onError("Activez la localisation du téléphone pour enregistrer la position actuelle.")
             return
         }
     }
@@ -314,9 +265,9 @@ private fun findCurrentLocation(
     }
 }
 
-private fun formatCoordinates(position: Position): String = String.format(
+private fun formatCoordinates(latitude: Double, longitude: Double): String = String.format(
     Locale.FRENCH,
     "Latitude %.6f · Longitude %.6f",
-    position.latitude,
-    position.longitude,
+    latitude,
+    longitude,
 )

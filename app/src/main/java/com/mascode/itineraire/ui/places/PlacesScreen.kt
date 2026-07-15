@@ -24,6 +24,7 @@ import com.mascode.itineraire.domain.model.PlaceCategory
 fun PlacesScreen(
     viewModel: PlacesViewModel,
     onAddPlace: () -> Unit,
+    onEditPlace: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -44,13 +45,17 @@ fun PlacesScreen(
             item { Text("Aucun lieu enregistré.") }
         } else {
             items(state.places, key = { it.id }) { place ->
-                Card(Modifier.fillMaxWidth()) {
+                Card(
+                    onClick = { onEditPlace(place.id) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
                     Column(Modifier.padding(16.dp)) {
                         Text(place.name, style = MaterialTheme.typography.titleMedium)
                         Text(categoryLabel(place.category), style = MaterialTheme.typography.bodySmall)
                         if (place.latitude != null && place.longitude != null) {
                             Text("Position enregistrée", style = MaterialTheme.typography.bodySmall)
                         }
+                        Text("Appuyez pour modifier", style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }

@@ -24,7 +24,8 @@ class PlacesViewModel(private val repository: PlaceRepository) : ViewModel() {
         PlacesUiState(places, error)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PlacesUiState())
 
-    fun addPlace(
+    fun savePlace(
+        placeId: String?,
         name: String,
         category: PlaceCategory,
         latitude: Double? = null,
@@ -33,7 +34,13 @@ class PlacesViewModel(private val repository: PlaceRepository) : ViewModel() {
     ) {
         if (name.isBlank()) return
         viewModelScope.launch {
-            runCatching { repository.add(name, category, latitude, longitude) }
+            runCatching {
+                if (placeId == null) {
+                    repository.add(name, category, latitude, longitude)
+                } else {
+                    repository.update(placeId, name, category, latitude, longitude)
+                }
+            }
                 .onSuccess { onSaved() }
                 .onFailure { errorMessage.value = "Ce lieu existe déjà ou n'est pas valide." }
         }
