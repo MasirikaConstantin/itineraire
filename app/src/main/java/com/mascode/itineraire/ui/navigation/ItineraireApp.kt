@@ -151,7 +151,7 @@ private fun MainNavigation(
         NavHost(
             navController = navController,
             startDestination = Destination.TODAY.route,
-            modifier = if (showBottomBar) Modifier.padding(padding) else Modifier,
+            modifier = Modifier.padding(padding),
         ) {
             composable(Destination.TODAY.route) {
                 val viewModel: TodayViewModel = viewModel(factory = factory)
