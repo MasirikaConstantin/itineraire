@@ -40,6 +40,7 @@ import com.mascode.itineraire.ui.history.HistoryViewModel
 import com.mascode.itineraire.ui.places.PlacesScreen
 import com.mascode.itineraire.ui.places.PlacesViewModel
 import com.mascode.itineraire.ui.settings.ProfileScreen
+import com.mascode.itineraire.ui.settings.PrivacyPolicyScreen
 import com.mascode.itineraire.ui.settings.SecurityScreen
 import com.mascode.itineraire.ui.settings.SettingsScreen
 import com.mascode.itineraire.ui.settings.ThemeScreen
@@ -56,6 +57,7 @@ private enum class Destination(val route: String, val label: String, val icon: I
 private const val PROFILE_ROUTE = "settings/profile"
 private const val SECURITY_ROUTE = "settings/security"
 private const val THEME_ROUTE = "settings/theme"
+private const val PRIVACY_POLICY_ROUTE = "settings/privacy-policy"
 
 @Composable
 fun ItineraireApp(
@@ -177,6 +179,7 @@ private fun MainNavigation(
                     },
                     themeMode = themeMode,
                     onOpenTheme = { navController.navigate(THEME_ROUTE) },
+                    onOpenPrivacyPolicy = { navController.navigate(PRIVACY_POLICY_ROUTE) },
                 )
             }
             composable(PROFILE_ROUTE) {
@@ -206,6 +209,9 @@ private fun MainNavigation(
                     onThemeModeChanged = onThemeModeChanged,
                     onBack = navController::popBackStack,
                 )
+            }
+            composable(PRIVACY_POLICY_ROUTE) {
+                PrivacyPolicyScreen(onBack = navController::popBackStack)
             }
         }
     }

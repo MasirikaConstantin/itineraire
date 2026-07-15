@@ -126,6 +126,7 @@ La version actuelle permet de :
 - consulter la durée des trajets dans l'historique ;
 - consulter un premier écran de paramètres ;
 - choisir un thème clair, sombre ou synchronisé avec celui du téléphone ;
+- consulter la politique de confidentialité directement dans les paramètres ;
 - conserver toutes les informations dans une base Room locale.
 
 Les entités pour les tronçons et les observations existent déjà, mais leur parcours de saisie reste à construire.
@@ -141,6 +142,10 @@ Lorsque la protection est active, l'accès est reverrouillé dès que l'applicat
 ## Apparence
 
 Le thème se choisit dans **Paramètres → Thème**. Trois modes sont disponibles : suivre automatiquement le thème Android, conserver le thème clair ou conserver le thème sombre. Le choix est appliqué immédiatement et sauvegardé dans les préférences privées locales de l'application.
+
+## Politique de confidentialité
+
+La politique est consultable hors connexion dans **Paramètres → Politique de confidentialité**. Elle décrit les données saisies, leur utilisation, le stockage local, le rôle du système Android dans l'authentification biométrique et les éventuelles sauvegardes système. Elle doit être actualisée avant toute intégration de géolocalisation, synchronisation, sauvegarde distante, analyse d'usage, publicité ou autre service tiers.
 
 ## Environnement de développement
 

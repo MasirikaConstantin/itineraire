@@ -15,6 +15,7 @@ import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Payments
+import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.ChevronRight
@@ -39,6 +40,7 @@ fun SettingsScreen(
     onOpenProfile: () -> Unit,
     onOpenSecurity: () -> Unit,
     onOpenTheme: () -> Unit,
+    onOpenPrivacyPolicy: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -115,6 +117,13 @@ fun SettingsScreen(
                     icon = Icons.Outlined.Info,
                     title = "Itinéraire",
                     description = "Version 1.0",
+                )
+                HorizontalDivider(Modifier.padding(horizontal = 16.dp))
+                SettingsRow(
+                    icon = Icons.Outlined.PrivacyTip,
+                    title = "Politique de confidentialité",
+                    description = "Comprendre l'utilisation de vos données",
+                    onClick = onOpenPrivacyPolicy,
                 )
             }
             Spacer(Modifier.height(16.dp))
