@@ -1,10 +1,12 @@
 package com.mascode.itineraire
 
+import android.graphics.Color
 import android.os.Bundle
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.SideEffect
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -24,11 +26,23 @@ class MainActivity : FragmentActivity() {
         appViewModel = ViewModelProvider(this, factory)[AppViewModel::class.java]
         setContent {
             val themeMode by appViewModel.themeMode.collectAsStateWithLifecycle()
-            val systemInDarkTheme = isSystemInDarkTheme()
+            val systemInDarkTheme by appViewModel.systemDarkTheme.collectAsStateWithLifecycle()
             val darkTheme = when (themeMode) {
                 ThemeMode.SYSTEM -> systemInDarkTheme
                 ThemeMode.LIGHT -> false
                 ThemeMode.DARK -> true
+            }
+            SideEffect {
+                enableEdgeToEdge(
+                    statusBarStyle = SystemBarStyle.auto(
+                        Color.TRANSPARENT,
+                        Color.TRANSPARENT,
+                    ) { darkTheme },
+                    navigationBarStyle = SystemBarStyle.auto(
+                        Color.TRANSPARENT,
+                        Color.TRANSPARENT,
+                    ) { darkTheme },
+                )
             }
             ItineraireTheme(darkTheme = darkTheme) {
                 ItineraireApp(
@@ -44,5 +58,15 @@ class MainActivity : FragmentActivity() {
     override fun onStop() {
         super.onStop()
         if (!isChangingConfigurations) appViewModel.lock()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        appViewModel.refreshSystemTheme()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus && ::appViewModel.isInitialized) appViewModel.refreshSystemTheme()
     }
 }

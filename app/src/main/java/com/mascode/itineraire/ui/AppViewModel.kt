@@ -37,6 +37,7 @@ class AppViewModel(
     private val message = MutableStateFlow<String?>(null)
 
     val themeMode: StateFlow<ThemeMode> = themeRepository.themeMode
+    val systemDarkTheme: StateFlow<Boolean> = themeRepository.systemDarkTheme
 
     val accessState: StateFlow<AppAccessState> = combine(
         accountRepository.account,
@@ -109,5 +110,9 @@ class AppViewModel(
 
     fun setThemeMode(themeMode: ThemeMode) {
         themeRepository.setThemeMode(themeMode)
+    }
+
+    fun refreshSystemTheme() {
+        themeRepository.refreshSystemTheme()
     }
 }
