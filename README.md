@@ -214,6 +214,20 @@ Commandes utiles :
 
 L'APK de développement est généré dans `app/build/outputs/apk/debug/`.
 
+## Taille de l'application
+
+La variante `release` active R8 et la suppression des ressources inutilisées. Cette étape est indispensable car `material-icons-extended` contient plusieurs milliers d'icônes alors que l'application n'en utilise qu'une petite sélection. Le code, les icônes et les ressources non référencés sont retirés automatiquement de la version distribuée.
+
+Lors de la mise en place de cette optimisation, l'APK release non signé est passé d'environ 47,5 Mo à 3,85 Mo. La variante `debug` reste volontairement non minifiée afin de conserver des compilations et un débogage plus simples ; elle ne doit donc pas servir à évaluer la taille finale de l'application.
+
+La construction optimisée s'effectue avec :
+
+```bash
+./gradlew assembleRelease
+```
+
+L'APK produit dans `app/build/outputs/apk/release/` doit encore être signé avec la clé de distribution avant son installation ou son partage. La clé et ses mots de passe ne doivent jamais être ajoutés au dépôt Git.
+
 ## Base de données et migrations
 
 Le schéma Room est exporté dans :
