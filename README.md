@@ -124,6 +124,18 @@ Les entités pour les tronçons et les observations existent déjà, mais leur p
 
 Le niveau Android minimal élevé est un choix assumé pour l'usage personnel initial du projet.
 
+## Identité visuelle
+
+L'icône représente une épingle de géolocalisation reliée à un petit tracé. Elle reprend le bordeaux du thème sombre et le cyan utilisé comme couleur d'accent dans l'application.
+
+La source haute résolution est conservée dans `design/app-icon-source.png`. Les variantes Android classiques, rondes et adaptatives peuvent être régénérées avec Java 21 :
+
+```bash
+java tools/GenerateLauncherIcons.java design/app-icon-source.png app/src/main/res
+```
+
+Le générateur produit les ressources pour les densités `mdpi`, `hdpi`, `xhdpi`, `xxhdpi` et `xxxhdpi`. Une version monochrome vectorielle est également fournie pour les lanceurs Android qui appliquent des icônes thématiques.
+
 ## Lancer le projet
 
 1. Ouvrir le dossier dans Android Studio.
