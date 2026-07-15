@@ -83,13 +83,13 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
             item {
                 PrivacySection(
                     title = "Stockage et transmission",
-                    content = "Les données personnelles sont stockées dans l'espace privé de l'application sur votre téléphone. Aucun compte en ligne, outil d'analyse ou service publicitaire n'est utilisé. La carte nécessite toutefois Internet pour charger des tuiles depuis OpenFreeMap : ce fournisseur reçoit les requêtes techniques nécessaires, notamment l'adresse IP et la zone de carte demandée, mais l'application ne lui transmet pas volontairement le nom, la catégorie ou l'historique local de vos lieux. Android peut aussi sauvegarder ou transférer les données de l'application selon les réglages du téléphone et du compte système.",
+                    content = "Les données personnelles sont stockées dans l'espace privé de l'application sur votre téléphone. L'application ne possède actuellement aucun compte en ligne, outil d'analyse, service publicitaire ou fond de carte distant, et ne demande pas l'accès à Internet. Android peut néanmoins sauvegarder ou transférer les données de l'application selon les réglages du téléphone et du compte système.",
                 )
             }
             item {
                 PrivacySection(
                     title = "Localisation",
-                    content = "La position d'un lieu est facultative. Vous pouvez placer le repère manuellement sur la carte sans autoriser la localisation. L'application demande l'accès à votre position uniquement lorsque vous touchez « Utiliser ma position actuelle », pendant que l'application est ouverte. Elle n'effectue aucun suivi continu ou en arrière-plan. Refuser l'autorisation n'empêche pas de créer ou d'utiliser un lieu.",
+                    content = "La position d'un lieu est facultative. L'application demande l'accès à votre position uniquement lorsque vous touchez « Utiliser ma position actuelle », pendant que l'application est ouverte. Elle n'effectue aucun suivi continu ou en arrière-plan. Refuser l'autorisation n'empêche pas de créer, de modifier ou d'utiliser un lieu.",
                 )
             }
             item {

@@ -122,7 +122,8 @@ La version actuelle permet de :
 - créer, modifier ou supprimer un profil local facultatif depuis une page dédiée ;
 - activer facultativement la protection par empreinte, visage compatible ou verrouillage du téléphone ;
 - créer et consulter des lieux classés par catégories (maison, études, travail, transport, santé, commerce et autres) depuis une page dédiée ;
-- associer facultativement un lieu à une position choisie sur la carte ou à la position actuelle du téléphone ;
+- associer facultativement un lieu à la position actuelle du téléphone, lors de sa création ou plus tard ;
+- modifier le nom, la catégorie ou la position d'un lieu depuis la liste des lieux ;
 - enregistrer le réveil et la sortie de la maison ;
 - démarrer et terminer un trajet entre deux lieux ;
 - décomposer un trajet en tronçons avec lieux, transport, horaires, durée, prix en CDF et notes ;
@@ -137,13 +138,11 @@ La version actuelle permet de :
 
 La position facultative prépare le calcul des distances entre les lieux. Elle n'est pas nécessaire pour enregistrer ou utiliser un lieu.
 
-## Géolocalisation et carte
+## Géolocalisation facultative
 
-La création d'un lieu possède sa propre page. Un lieu peut être enregistré sans coordonnées, positionné manuellement en déplaçant la carte sous le repère central, ou associé à la position actuelle du téléphone.
+La création et la modification d'un lieu utilisent une page dédiée. Un lieu peut être enregistré sans coordonnées. Lorsque l'utilisateur se trouve à cet endroit, il peut employer **Utiliser ma position actuelle** pour ajouter ses coordonnées. Cette position peut ensuite être remplacée ou retirée en modifiant le lieu depuis la liste.
 
 La localisation est demandée uniquement après une action explicite sur **Utiliser ma position actuelle**. Une position approximative reste acceptée, aucun accès en arrière-plan n'est demandé et aucun suivi continu n'est effectué. Les coordonnées retenues sont enregistrées avec le lieu dans la base Room locale afin de permettre plus tard le calcul des distances.
-
-La carte repose sur MapLibre Compose et charge le fond OpenFreeMap par Internet, sans clé d'API. Les lieux et les trajets restent utilisables hors connexion, mais l'affichage d'une zone de carte qui n'est pas déjà chargée nécessite une connexion. Le fournisseur de tuiles peut recevoir les informations techniques liées aux requêtes de carte, comme l'adresse IP et la zone consultée ; le nom, la catégorie et l'historique local des lieux ne lui sont pas volontairement transmis par l'application.
 
 ## Sécurité et authentification
 
@@ -159,7 +158,7 @@ Le thème se choisit dans **Paramètres → Thème**. Trois modes sont disponibl
 
 ## Politique de confidentialité
 
-La politique est consultable hors connexion dans **Paramètres → Politique de confidentialité**. Elle décrit les données saisies, leur utilisation, le stockage local, la localisation facultative, le chargement du fond de carte, le rôle du système Android dans l'authentification biométrique et les éventuelles sauvegardes système. Elle doit être actualisée avant toute intégration de synchronisation, sauvegarde distante, analyse d'usage, publicité ou autre service qui modifierait le traitement des données.
+La politique est consultable hors connexion dans **Paramètres → Politique de confidentialité**. Elle décrit les données saisies, leur utilisation, le stockage local, la localisation facultative, le rôle du système Android dans l'authentification biométrique et les éventuelles sauvegardes système. Elle doit être actualisée avant toute intégration de synchronisation, sauvegarde distante, analyse d'usage, publicité ou autre service qui modifierait le traitement des données.
 
 ## Environnement de développement
 
@@ -167,7 +166,6 @@ La politique est consultable hors connexion dans **Paramètres → Politique de 
 - Material 3
 - Room sur SQLite
 - Navigation Compose
-- MapLibre Compose avec un fond OpenFreeMap
 - Gradle avec Java 21
 - `minSdk = 36`
 - `compileSdk = 36.1`
