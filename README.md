@@ -141,7 +141,7 @@ Lorsque la protection est active, l'accès est reverrouillé dès que l'applicat
 
 ## Apparence
 
-Le thème se choisit dans **Paramètres → Thème**. Trois modes sont disponibles : suivre automatiquement le thème Android, conserver le thème clair ou conserver le thème sombre. Le choix est appliqué immédiatement, sauvegardé dans les préférences privées locales et transmis au système Android afin que l'écran de démarrage utilise lui aussi l'apparence sélectionnée.
+Le thème se choisit dans **Paramètres → Thème**. Trois modes sont disponibles : suivre automatiquement le thème Android, conserver le thème clair ou conserver le thème sombre. Le choix est appliqué immédiatement, sauvegardé dans les préférences privées locales et transmis au système Android afin que l'écran de démarrage utilise lui aussi l'apparence sélectionnée. Le mode sombre emploie une palette stable fondée sur le fond bleu nuit `#282A36` ; il ne reprend pas les couleurs dynamiques du téléphone.
 
 ## Politique de confidentialité
 
