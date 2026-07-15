@@ -13,15 +13,19 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 data class TodayUiState(
     val isLoading: Boolean = true,
+    val selectedDate: LocalDate = LocalDate.now(),
     val dayId: String? = null,
     val events: List<DayEventEntity> = emptyList(),
     val journeys: List<JourneyEntity> = emptyList(),
@@ -35,36 +39,55 @@ class TodayViewModel(
     private val placeRepository: PlaceRepository,
     private val journeyRepository: JourneyRepository,
 ) : ViewModel() {
-    private val dayId = MutableStateFlow<String?>(null)
+    private val selectedDate = MutableStateFlow(LocalDate.now())
     private val errorMessage = MutableStateFlow<String?>(null)
 
-    val uiState: StateFlow<TodayUiState> = dayId
-        .filterNotNull()
-        .flatMapLatest { id ->
-            combine(
-                dayRepository.observeEvents(id),
-                journeyRepository.observeForDay(id),
-                placeRepository.places,
-                errorMessage,
-            ) { events, journeys, places, error ->
-                TodayUiState(
-                    isLoading = false,
-                    dayId = id,
-                    events = events,
-                    journeys = journeys,
-                    places = places,
-                    errorMessage = error,
-                )
+    val uiState: StateFlow<TodayUiState> = selectedDate
+        .flatMapLatest { date ->
+            flow { emit(dayRepository.getOrCreate(date).id) }
+                .flatMapLatest { id ->
+                    combine(
+                        dayRepository.observeEvents(id),
+                        journeyRepository.observeForDay(id),
+                        placeRepository.places,
+                        errorMessage,
+                    ) { events, journeys, places, error ->
+                        TodayUiState(
+                            isLoading = false,
+                            selectedDate = date,
+                            dayId = id,
+                            events = events,
+                            journeys = journeys,
+                            places = places,
+                            errorMessage = error,
+                        )
+                    }
+                }
+                .onStart { emit(TodayUiState(selectedDate = date)) }
+                .catch { error ->
+                    emit(
+                        TodayUiState(
+                            isLoading = false,
+                            selectedDate = date,
+                            errorMessage = error.message ?: "Impossible d'ouvrir cette journée.",
+                        ),
+                    )
+                }
             }
-        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TodayUiState())
 
-    init {
-        viewModelScope.launch {
-            runCatching { dayRepository.getOrCreate(LocalDate.now()).id }
-                .onSuccess { dayId.value = it }
-                .onFailure { errorMessage.value = it.message ?: "Impossible d'ouvrir la journée." }
+    fun showPreviousDay() {
+        selectedDate.update { it.minusDays(1) }
+    }
+
+    fun showNextDay() {
+        selectedDate.update { date ->
+            if (date.isBefore(LocalDate.now())) date.plusDays(1) else date
         }
+    }
+
+    fun selectDate(date: LocalDate) {
+        selectedDate.value = date.coerceAtMost(LocalDate.now())
     }
 
     fun addEvent(type: DayEventType) = runAction { id -> dayRepository.addEvent(id, type) }
@@ -85,7 +108,7 @@ class TodayViewModel(
     }
 
     private fun runAction(action: suspend (String) -> Unit) {
-        val id = dayId.value ?: return
+        val id = uiState.value.dayId ?: return
         viewModelScope.launch {
             runCatching { action(id) }
                 .onFailure { errorMessage.value = it.message ?: "Une erreur est survenue." }

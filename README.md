@@ -128,6 +128,7 @@ La version actuelle permet de :
 - choisir un thème clair, sombre ou synchronisé avec celui du téléphone ;
 - consulter la politique de confidentialité directement dans les paramètres ;
 - naviguer entre les quatre sections principales par glissement horizontal ou avec le menu inférieur ;
+- parcourir les journées avec les flèches de l'accueil ou sélectionner directement une date dans le calendrier ;
 - conserver toutes les informations dans une base Room locale.
 
 Les entités pour les tronçons et les observations existent déjà, mais leur parcours de saisie reste à construire.
