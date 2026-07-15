@@ -2,6 +2,8 @@ package com.mascode.itineraire.ui.places
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -70,6 +72,7 @@ fun PlacesScreen(viewModel: PlacesViewModel, modifier: Modifier = Modifier) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AddPlaceDialog(onDismiss: () -> Unit, onConfirm: (String, PlaceCategory) -> Unit) {
     var name by remember { mutableStateOf("") }
@@ -80,13 +83,25 @@ private fun AddPlaceDialog(onDismiss: () -> Unit, onConfirm: (String, PlaceCateg
         title = { Text("Ajouter un lieu") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nom") })
-                PlaceCategory.entries.forEach { item ->
-                    FilterChip(
-                        selected = category == item,
-                        onClick = { category = item },
-                        label = { Text(categoryLabel(item)) },
-                    )
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Nom") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text("Catégorie", style = MaterialTheme.typography.labelLarge)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    maxItemsInEachRow = 3,
+                ) {
+                    PlaceCategory.entries.forEach { item ->
+                        FilterChip(
+                            selected = category == item,
+                            onClick = { category = item },
+                            label = { Text(categoryLabel(item)) },
+                        )
+                    }
                 }
             }
         },
@@ -99,9 +114,16 @@ private fun AddPlaceDialog(onDismiss: () -> Unit, onConfirm: (String, PlaceCateg
 
 private fun categoryLabel(category: PlaceCategory) = when (category) {
     PlaceCategory.HOME -> "Maison"
-    PlaceCategory.UNIVERSITY -> "Faculté / université"
+    PlaceCategory.SCHOOL -> "École"
+    PlaceCategory.UNIVERSITY -> "Université"
     PlaceCategory.WORK -> "Travail"
     PlaceCategory.CHURCH -> "Église"
-    PlaceCategory.TRANSPORT_STOP -> "Arrêt / point de transport"
+    PlaceCategory.TRANSPORT_STOP -> "Arrêt"
+    PlaceCategory.MARKET -> "Marché / commerce"
+    PlaceCategory.HEALTH -> "Santé"
+    PlaceCategory.ADMINISTRATION -> "Administration"
+    PlaceCategory.RESTAURANT -> "Restaurant"
+    PlaceCategory.LEISURE -> "Loisirs"
+    PlaceCategory.FAMILY_FRIEND -> "Famille / ami"
     PlaceCategory.OTHER -> "Autre"
 }

@@ -120,7 +120,7 @@ La version actuelle permet de :
 - utiliser l'application sans créer de compte ni activer de protection ;
 - créer, modifier ou supprimer un profil local facultatif depuis une page dédiée ;
 - activer facultativement la protection par empreinte, visage compatible ou verrouillage du téléphone ;
-- créer et consulter des lieux ;
+- créer et consulter des lieux classés par catégories (maison, études, travail, transport, santé, commerce et autres) ;
 - enregistrer le réveil et la sortie de la maison ;
 - démarrer et terminer un trajet entre deux lieux ;
 - consulter la durée des trajets dans l'historique ;

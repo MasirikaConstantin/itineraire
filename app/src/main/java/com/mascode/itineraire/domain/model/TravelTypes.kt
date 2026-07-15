@@ -2,10 +2,17 @@ package com.mascode.itineraire.domain.model
 
 enum class PlaceCategory {
     HOME,
+    SCHOOL,
     UNIVERSITY,
     WORK,
     CHURCH,
     TRANSPORT_STOP,
+    MARKET,
+    HEALTH,
+    ADMINISTRATION,
+    RESTAURANT,
+    LEISURE,
+    FAMILY_FRIEND,
     OTHER,
 }
 
