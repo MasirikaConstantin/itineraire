@@ -5,6 +5,7 @@ import com.mascode.itineraire.data.local.dao.DayLogDao
 import com.mascode.itineraire.data.local.entity.DayEventEntity
 import com.mascode.itineraire.data.local.entity.DayLogEntity
 import com.mascode.itineraire.domain.model.DayEventType
+import java.time.Instant
 import java.time.LocalDate
 
 class DayRepository(
@@ -20,7 +21,22 @@ class DayRepository(
 
     fun observeEvents(dayId: String) = dayEventDao.observeForDay(dayId)
 
-    suspend fun addEvent(dayId: String, type: DayEventType) {
-        dayEventDao.insert(DayEventEntity(dayId = dayId, type = type))
+    suspend fun addEvent(
+        dayId: String,
+        type: DayEventType,
+        occurredAt: Instant = Instant.now(),
+        placeId: String? = null,
+        notes: String? = null,
+    ) {
+        require(!occurredAt.isAfter(Instant.now())) { "L'heure de l'événement ne peut pas être future." }
+        dayEventDao.insert(
+            DayEventEntity(
+                dayId = dayId,
+                type = type,
+                occurredAt = occurredAt,
+                placeId = placeId,
+                notes = notes?.trim()?.takeIf(String::isNotEmpty),
+            ),
+        )
     }
 }

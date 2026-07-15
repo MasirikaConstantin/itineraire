@@ -58,6 +58,7 @@ fun TodayScreen(
     viewModel: TodayViewModel,
     onOpenPlaces: () -> Unit,
     onOpenJourney: (String) -> Unit,
+    onAddEvent: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -88,6 +89,7 @@ fun TodayScreen(
                 viewModel = viewModel,
                 onOpenPlaces = onOpenPlaces,
                 onOpenJourney = onOpenJourney,
+                onAddEvent = onAddEvent,
                 onStartJourney = { showJourneyDialog = true },
                 modifier = Modifier.weight(1f),
             )
@@ -158,6 +160,7 @@ private fun DayContent(
     viewModel: TodayViewModel,
     onOpenPlaces: () -> Unit,
     onOpenJourney: (String) -> Unit,
+    onAddEvent: () -> Unit,
     onStartJourney: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -190,7 +193,18 @@ private fun DayContent(
                     OutlinedButton(onClick = { viewModel.addEvent(DayEventType.LEAVE_HOME) }) { Text("Sortie maison") }
                 }
             }
+        }
 
+        item {
+            OutlinedButton(
+                onClick = onAddEvent,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Ajouter un événement")
+            }
+        }
+
+        if (isToday) {
             item {
                 Button(
                     onClick = {
@@ -234,7 +248,17 @@ private fun DayContent(
             items(state.events, key = { it.id }) { event ->
                 Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                     Text(formatTime(event.occurredAt), modifier = Modifier.weight(0.25f))
-                    Text(eventLabel(event.type), modifier = Modifier.weight(0.75f))
+                    Column(modifier = Modifier.weight(0.75f)) {
+                        Text(eventTypeLabel(event.type))
+                        event.placeId?.let { placeId ->
+                            state.places.firstOrNull { it.id == placeId }?.let { place ->
+                                Text(place.name, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                        event.notes?.let { notes ->
+                            Text(notes, style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
                 }
                 HorizontalDivider()
             }
@@ -319,14 +343,6 @@ private fun NewJourneyDialog(
         confirmButton = { TextButton(onClick = { onConfirm(sourceId, destinationId) }) { Text("Démarrer") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Annuler") } },
     )
-}
-
-private fun eventLabel(type: DayEventType) = when (type) {
-    DayEventType.WAKE_UP -> "Réveil"
-    DayEventType.LEAVE_HOME -> "Sortie de la maison"
-    DayEventType.ARRIVAL -> "Arrivée"
-    DayEventType.ACTIVITY -> "Activité"
-    DayEventType.END_OF_DAY -> "Fin de journée"
 }
 
 private fun formatTime(instant: java.time.Instant): String =

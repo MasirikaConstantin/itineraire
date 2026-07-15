@@ -19,6 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +52,7 @@ import com.mascode.itineraire.ui.settings.SettingsScreen
 import com.mascode.itineraire.ui.settings.ThemeScreen
 import com.mascode.itineraire.ui.today.TodayScreen
 import com.mascode.itineraire.ui.today.TodayViewModel
+import com.mascode.itineraire.ui.today.AddEventScreen
 import kotlinx.coroutines.launch
 
 private enum class Destination(val label: String, val icon: ImageVector) {
@@ -64,6 +66,7 @@ private const val MAIN_ROUTE = "main"
 private const val ACTIVE_JOURNEY_ROUTE = "journey/{journeyId}"
 private const val ADD_PLACE_ROUTE = "places/add"
 private const val EDIT_PLACE_ROUTE = "places/edit/{placeId}"
+private const val ADD_EVENT_ROUTE = "events/add"
 private const val PROFILE_ROUTE = "settings/profile"
 private const val SECURITY_ROUTE = "settings/security"
 private const val THEME_ROUTE = "settings/theme"
@@ -181,6 +184,7 @@ private fun MainNavigation(
                                     }
                                 },
                                 onOpenJourney = { journeyId -> navController.navigate("journey/$journeyId") },
+                                onAddEvent = { navController.navigate(ADD_EVENT_ROUTE) },
                             )
                         }
 
@@ -226,6 +230,14 @@ private fun MainNavigation(
                     factory = factory.activeJourneyFactory(journeyId),
                 )
                 ActiveJourneyScreen(viewModel = viewModel, onBack = navController::popBackStack)
+            }
+            composable(ADD_EVENT_ROUTE) { entry ->
+                val mainEntry = remember(entry) { navController.getBackStackEntry(MAIN_ROUTE) }
+                val viewModel: TodayViewModel = viewModel(
+                    viewModelStoreOwner = mainEntry,
+                    factory = factory,
+                )
+                AddEventScreen(viewModel = viewModel, onBack = navController::popBackStack)
             }
             composable(ADD_PLACE_ROUTE) {
                 val viewModel: PlacesViewModel = viewModel(factory = factory)

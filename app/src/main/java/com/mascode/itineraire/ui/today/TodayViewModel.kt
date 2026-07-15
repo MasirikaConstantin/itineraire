@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalDate
 
 data class TodayUiState(
@@ -90,7 +91,22 @@ class TodayViewModel(
         selectedDate.value = date.coerceAtMost(LocalDate.now())
     }
 
-    fun addEvent(type: DayEventType) = runAction { id -> dayRepository.addEvent(id, type) }
+    fun addEvent(
+        type: DayEventType,
+        occurredAt: Instant = Instant.now(),
+        placeId: String? = null,
+        notes: String? = null,
+        onSaved: () -> Unit = {},
+    ) {
+        val id = uiState.value.dayId ?: return
+        viewModelScope.launch {
+            runCatching { dayRepository.addEvent(id, type, occurredAt, placeId, notes) }
+                .onSuccess { onSaved() }
+                .onFailure { error ->
+                    errorMessage.value = error.message ?: "Impossible d'enregistrer l'événement."
+                }
+        }
+    }
 
     fun startJourney(
         sourceId: String,
@@ -116,11 +132,4 @@ class TodayViewModel(
         errorMessage.value = null
     }
 
-    private fun runAction(action: suspend (String) -> Unit) {
-        val id = uiState.value.dayId ?: return
-        viewModelScope.launch {
-            runCatching { action(id) }
-                .onFailure { errorMessage.value = it.message ?: "Une erreur est survenue." }
-        }
-    }
 }
