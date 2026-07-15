@@ -9,6 +9,7 @@ import com.mascode.itineraire.data.repository.AppSecurityRepository
 import com.mascode.itineraire.data.repository.JourneyRepository
 import com.mascode.itineraire.data.repository.LocalAccountRepository
 import com.mascode.itineraire.data.repository.PlaceRepository
+import com.mascode.itineraire.data.repository.ThemeRepository
 
 class AppContainer(context: Context) {
     private val database = Room.databaseBuilder(
@@ -25,4 +26,5 @@ class AppContainer(context: Context) {
     val journeyRepository = JourneyRepository(database.journeyDao())
     val localAccountRepository = LocalAccountRepository(database.localAccountDao())
     val appSecurityRepository = AppSecurityRepository(database.appSecurityDao())
+    val themeRepository = ThemeRepository(context)
 }

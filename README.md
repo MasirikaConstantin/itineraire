@@ -45,6 +45,7 @@ Les déplacements peuvent révéler des informations sensibles. Les données son
 - **Observation (`JourneyObservation`)** : information contextuelle comme une attente, un embouteillage, une panne ou la météo.
 - **Profil local (`LocalAccount`)** : identité facultative stockée uniquement sur le téléphone.
 - **Sécurité (`AppSecurity`)** : préférence indépendante qui indique si l'application doit être verrouillée.
+- **Thème (`ThemeMode`)** : préférence locale d'apparence, réglée sur système, clair ou sombre.
 
 ## Modèle de données
 
@@ -124,6 +125,7 @@ La version actuelle permet de :
 - démarrer et terminer un trajet entre deux lieux ;
 - consulter la durée des trajets dans l'historique ;
 - consulter un premier écran de paramètres ;
+- choisir un thème clair, sombre ou synchronisé avec celui du téléphone ;
 - conserver toutes les informations dans une base Room locale.
 
 Les entités pour les tronçons et les observations existent déjà, mais leur parcours de saisie reste à construire.
@@ -135,6 +137,10 @@ Le profil local et la protection de l'application sont deux options indépendant
 La protection s'active explicitement dans **Paramètres → Sécurité et authentification**. L'application utilise alors le dialogue système `BiometricPrompt` avec `BIOMETRIC_WEAK | DEVICE_CREDENTIAL`. Selon le matériel et la configuration de l'appareil, Android propose une empreinte, une reconnaissance faciale compatible ou le code, schéma ou mot de passe de verrouillage. L'application n'accède jamais directement aux données biométriques. Voir la [documentation Android sur l'authentification biométrique](https://developer.android.com/identity/sign-in/biometric-auth).
 
 Lorsque la protection est active, l'accès est reverrouillé dès que l'application passe en arrière-plan. Lorsqu'elle est inactive, aucun écran d'authentification n'est affiché. Les pages Profil, Sécurité et Verrouillage utilisent les couleurs Material du thème clair ou sombre actif. Cette protection contrôle l'interface mais ne chiffre pas encore le fichier SQLite lui-même ; le chiffrement local pourra constituer une couche de sécurité supplémentaire.
+
+## Apparence
+
+Le thème se choisit dans **Paramètres → Thème**. Trois modes sont disponibles : suivre automatiquement le thème Android, conserver le thème clair ou conserver le thème sombre. Le choix est appliqué immédiatement et sauvegardé dans les préférences privées locales de l'application.
 
 ## Environnement de développement
 

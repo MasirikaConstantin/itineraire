@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.mascode.itineraire.data.local.entity.LocalAccountEntity
 import com.mascode.itineraire.data.repository.AppSecurityRepository
 import com.mascode.itineraire.data.repository.LocalAccountRepository
+import com.mascode.itineraire.data.repository.ThemeRepository
+import com.mascode.itineraire.domain.model.ThemeMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -29,9 +31,12 @@ sealed interface AppAccessState {
 class AppViewModel(
     private val accountRepository: LocalAccountRepository,
     private val securityRepository: AppSecurityRepository,
+    private val themeRepository: ThemeRepository,
 ) : ViewModel() {
     private val authenticated = MutableStateFlow(false)
     private val message = MutableStateFlow<String?>(null)
+
+    val themeMode: StateFlow<ThemeMode> = themeRepository.themeMode
 
     val accessState: StateFlow<AppAccessState> = combine(
         accountRepository.account,
@@ -100,5 +105,9 @@ class AppViewModel(
 
     fun clearMessage() {
         message.value = null
+    }
+
+    fun setThemeMode(themeMode: ThemeMode) {
+        themeRepository.setThemeMode(themeMode)
     }
 }

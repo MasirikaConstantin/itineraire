@@ -29,13 +29,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.mascode.itineraire.data.local.entity.LocalAccountEntity
+import com.mascode.itineraire.domain.model.ThemeMode
 
 @Composable
 fun SettingsScreen(
     account: LocalAccountEntity?,
     biometricLockEnabled: Boolean,
+    themeMode: ThemeMode,
     onOpenProfile: () -> Unit,
     onOpenSecurity: () -> Unit,
+    onOpenTheme: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -82,7 +85,8 @@ fun SettingsScreen(
                 SettingsRow(
                     icon = Icons.Outlined.DarkMode,
                     title = "Thème",
-                    description = "Selon le thème du téléphone",
+                    description = themeMode.description(),
+                    onClick = onOpenTheme,
                 )
             }
         }
@@ -116,6 +120,12 @@ fun SettingsScreen(
             Spacer(Modifier.height(16.dp))
         }
     }
+}
+
+private fun ThemeMode.description(): String = when (this) {
+    ThemeMode.SYSTEM -> "Selon le thème du téléphone"
+    ThemeMode.LIGHT -> "Clair"
+    ThemeMode.DARK -> "Sombre"
 }
 
 @Composable
