@@ -124,7 +124,8 @@ La version actuelle permet de :
 - créer et consulter des lieux classés par catégories (maison, études, travail, transport, santé, commerce et autres) depuis une page dédiée ;
 - associer facultativement un lieu à la position actuelle du téléphone, lors de sa création ou plus tard ;
 - modifier le nom, la catégorie ou la position d'un lieu depuis la liste des lieux ;
-- enregistrer le réveil et la sortie de la maison ;
+- enregistrer rapidement le réveil et la sortie de la maison ;
+- créer un événement Réveil, Sortie de la maison, Arrivée, Activité ou Fin de journée avec une heure, un lieu et une note facultatifs ;
 - démarrer et terminer un trajet entre deux lieux ;
 - décomposer un trajet en tronçons avec lieux, transport, horaires, durée, prix en CDF et notes ;
 - signaler les embouteillages, attentes, pannes, problèmes météo et autres observations ;
