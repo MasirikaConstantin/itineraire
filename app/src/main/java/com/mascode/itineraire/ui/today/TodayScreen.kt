@@ -123,7 +123,7 @@ private fun DayNavigationHeader(
     onNextDay: () -> Unit,
     onChooseDate: () -> Unit,
 ) {
-    Surface(tonalElevation = 2.dp) {
+    Surface(color = MaterialTheme.colorScheme.background) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
