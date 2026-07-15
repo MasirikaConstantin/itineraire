@@ -24,10 +24,17 @@ class PlacesViewModel(private val repository: PlaceRepository) : ViewModel() {
         PlacesUiState(places, error)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PlacesUiState())
 
-    fun addPlace(name: String, category: PlaceCategory) {
+    fun addPlace(
+        name: String,
+        category: PlaceCategory,
+        latitude: Double? = null,
+        longitude: Double? = null,
+        onSaved: () -> Unit = {},
+    ) {
         if (name.isBlank()) return
         viewModelScope.launch {
-            runCatching { repository.add(name, category) }
+            runCatching { repository.add(name, category, latitude, longitude) }
+                .onSuccess { onSaved() }
                 .onFailure { errorMessage.value = "Ce lieu existe déjà ou n'est pas valide." }
         }
     }
