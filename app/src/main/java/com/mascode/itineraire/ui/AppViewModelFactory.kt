@@ -11,7 +11,7 @@ class AppViewModelFactory(private val container: AppContainer) : ViewModelProvid
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
         modelClass.isAssignableFrom(AppViewModel::class.java) ->
-            AppViewModel(container.localAccountRepository) as T
+            AppViewModel(container.localAccountRepository, container.appSecurityRepository) as T
 
         modelClass.isAssignableFrom(TodayViewModel::class.java) -> TodayViewModel(
             container.dayRepository,

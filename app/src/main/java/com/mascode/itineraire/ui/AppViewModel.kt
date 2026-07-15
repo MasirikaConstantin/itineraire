@@ -3,6 +3,7 @@ package com.mascode.itineraire.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mascode.itineraire.data.local.entity.LocalAccountEntity
+import com.mascode.itineraire.data.repository.AppSecurityRepository
 import com.mascode.itineraire.data.repository.LocalAccountRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,59 +14,83 @@ import kotlinx.coroutines.launch
 
 sealed interface AppAccessState {
     data object Loading : AppAccessState
-    data class NeedsAccount(val errorMessage: String? = null) : AppAccessState
     data class Locked(
-        val account: LocalAccountEntity,
+        val account: LocalAccountEntity?,
         val errorMessage: String? = null,
     ) : AppAccessState
 
-    data class Authenticated(val account: LocalAccountEntity) : AppAccessState
+    data class Authenticated(
+        val account: LocalAccountEntity?,
+        val biometricLockEnabled: Boolean,
+        val message: String? = null,
+    ) : AppAccessState
 }
 
-class AppViewModel(private val accountRepository: LocalAccountRepository) : ViewModel() {
+class AppViewModel(
+    private val accountRepository: LocalAccountRepository,
+    private val securityRepository: AppSecurityRepository,
+) : ViewModel() {
     private val authenticated = MutableStateFlow(false)
-    private val errorMessage = MutableStateFlow<String?>(null)
+    private val message = MutableStateFlow<String?>(null)
 
     val accessState: StateFlow<AppAccessState> = combine(
         accountRepository.account,
+        securityRepository.biometricLockEnabled,
         authenticated,
-        errorMessage,
-    ) { account, isAuthenticated, error ->
+        message,
+    ) { account, biometricLockEnabled, isAuthenticated, currentMessage ->
         when {
-            account == null -> AppAccessState.NeedsAccount(error)
-            isAuthenticated -> AppAccessState.Authenticated(account)
-            else -> AppAccessState.Locked(account, error)
+            !biometricLockEnabled || isAuthenticated -> AppAccessState.Authenticated(
+                account = account,
+                biometricLockEnabled = biometricLockEnabled,
+                message = currentMessage,
+            )
+            else -> AppAccessState.Locked(account, currentMessage)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppAccessState.Loading)
 
-    fun createAccount(displayName: String) {
+    fun saveProfile(displayName: String) {
         viewModelScope.launch {
-            runCatching { accountRepository.create(displayName) }
-                .onSuccess {
-                    errorMessage.value = null
-                    authenticated.value = true
-                }
+            runCatching { accountRepository.save(displayName) }
+                .onSuccess { message.value = "Profil local enregistré." }
                 .onFailure {
-                    errorMessage.value = it.message ?: "Impossible de créer le compte local."
+                    message.value = it.message ?: "Impossible d'enregistrer le profil local."
                 }
+        }
+    }
+
+    fun setBiometricLockEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            runCatching {
+                if (enabled) authenticated.value = true
+                securityRepository.setBiometricLockEnabled(enabled)
+            }.onSuccess {
+                message.value = if (enabled) {
+                    "Protection biométrique activée."
+                } else {
+                    "Protection biométrique désactivée."
+                }
+            }.onFailure {
+                message.value = it.message ?: "Impossible de modifier la protection."
+            }
         }
     }
 
     fun unlock() {
-        errorMessage.value = null
+        message.value = null
         authenticated.value = true
     }
 
     fun lock() {
-        errorMessage.value = null
+        message.value = null
         authenticated.value = false
     }
 
-    fun reportAuthenticationError(message: String) {
-        errorMessage.value = message
+    fun reportAuthenticationError(error: String) {
+        message.value = error
     }
 
-    fun clearError() {
-        errorMessage.value = null
+    fun clearMessage() {
+        message.value = null
     }
 }

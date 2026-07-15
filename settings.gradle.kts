@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Itineraire"
+rootProject.name = "Itinéraire"
 include(":app")
