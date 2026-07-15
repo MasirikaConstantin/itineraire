@@ -33,7 +33,7 @@ L'interface doit rendre l'enregistrement rapide, tandis que le modèle de donné
 
 ### Respecter la vie privée
 
-Les déplacements peuvent révéler des informations sensibles. Les données sont donc privées et stockées dans l'espace local de l'application. La géolocalisation, le compte et la sauvegarde en ligne resteront facultatifs lorsqu'ils seront ajoutés.
+Les déplacements peuvent révéler des informations sensibles. Les données sont donc privées et stockées dans l'espace local de l'application. Un profil local obligatoire protège l'accès à l'application sans envoyer d'identité à un serveur. La géolocalisation et la sauvegarde en ligne resteront facultatives lorsqu'elles seront ajoutées.
 
 ## Vocabulaire métier
 
@@ -43,6 +43,7 @@ Les déplacements peuvent révéler des informations sensibles. Les données son
 - **Trajet (`Journey`)** : déplacement complet entre une source et une destination finale.
 - **Tronçon (`JourneyLeg`)** : partie d'un trajet effectuée avec un mode de transport donné.
 - **Observation (`JourneyObservation`)** : information contextuelle comme une attente, un embouteillage, une panne ou la météo.
+- **Compte local (`LocalAccount`)** : profil unique stocké sur le téléphone et utilisé pour contrôler l'accès à l'application.
 
 ## Modèle de données
 
@@ -57,6 +58,11 @@ erDiagram
     JOURNEY ||--o{ JOURNEY_OBSERVATION : documente
     JOURNEY_LEG ||--o{ JOURNEY_OBSERVATION : documente
     PLACE o|--o{ JOURNEY_LEG : relie
+    LOCAL_ACCOUNT {
+        int id PK
+        string displayName
+        instant createdAt
+    }
 ```
 
 Les coûts sont enregistrés sous forme d'entiers (`Long`) pour éviter les erreurs d'arrondi. La devise initiale est le franc congolais (`CDF`). Les identifiants sont des UUID afin de préparer l'export et une éventuelle synchronisation.

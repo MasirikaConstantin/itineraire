@@ -6,12 +6,14 @@ import androidx.room.TypeConverters
 import com.mascode.itineraire.data.local.dao.DayEventDao
 import com.mascode.itineraire.data.local.dao.DayLogDao
 import com.mascode.itineraire.data.local.dao.JourneyDao
+import com.mascode.itineraire.data.local.dao.LocalAccountDao
 import com.mascode.itineraire.data.local.dao.PlaceDao
 import com.mascode.itineraire.data.local.entity.DayEventEntity
 import com.mascode.itineraire.data.local.entity.DayLogEntity
 import com.mascode.itineraire.data.local.entity.JourneyEntity
 import com.mascode.itineraire.data.local.entity.JourneyLegEntity
 import com.mascode.itineraire.data.local.entity.JourneyObservationEntity
+import com.mascode.itineraire.data.local.entity.LocalAccountEntity
 import com.mascode.itineraire.data.local.entity.PlaceEntity
 
 @Database(
@@ -22,8 +24,9 @@ import com.mascode.itineraire.data.local.entity.PlaceEntity
         JourneyEntity::class,
         JourneyLegEntity::class,
         JourneyObservationEntity::class,
+        LocalAccountEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -32,4 +35,5 @@ abstract class ItineraireDatabase : RoomDatabase() {
     abstract fun placeDao(): PlaceDao
     abstract fun dayEventDao(): DayEventDao
     abstract fun journeyDao(): JourneyDao
+    abstract fun localAccountDao(): LocalAccountDao
 }
