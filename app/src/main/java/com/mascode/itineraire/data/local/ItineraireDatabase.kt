@@ -9,6 +9,7 @@ import com.mascode.itineraire.data.local.dao.DayLogDao
 import com.mascode.itineraire.data.local.dao.JourneyDao
 import com.mascode.itineraire.data.local.dao.LocalAccountDao
 import com.mascode.itineraire.data.local.dao.PlaceDao
+import com.mascode.itineraire.data.local.dao.QuickActionDao
 import com.mascode.itineraire.data.local.entity.DayEventEntity
 import com.mascode.itineraire.data.local.entity.AppSecurityEntity
 import com.mascode.itineraire.data.local.entity.DayLogEntity
@@ -17,6 +18,7 @@ import com.mascode.itineraire.data.local.entity.JourneyLegEntity
 import com.mascode.itineraire.data.local.entity.JourneyObservationEntity
 import com.mascode.itineraire.data.local.entity.LocalAccountEntity
 import com.mascode.itineraire.data.local.entity.PlaceEntity
+import com.mascode.itineraire.data.local.entity.QuickActionEntity
 
 @Database(
     entities = [
@@ -28,8 +30,9 @@ import com.mascode.itineraire.data.local.entity.PlaceEntity
         JourneyObservationEntity::class,
         LocalAccountEntity::class,
         AppSecurityEntity::class,
+        QuickActionEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -40,4 +43,5 @@ abstract class ItineraireDatabase : RoomDatabase() {
     abstract fun journeyDao(): JourneyDao
     abstract fun localAccountDao(): LocalAccountDao
     abstract fun appSecurityDao(): AppSecurityDao
+    abstract fun quickActionDao(): QuickActionDao
 }

@@ -9,6 +9,7 @@ import com.mascode.itineraire.data.repository.AppSecurityRepository
 import com.mascode.itineraire.data.repository.JourneyRepository
 import com.mascode.itineraire.data.repository.LocalAccountRepository
 import com.mascode.itineraire.data.repository.PlaceRepository
+import com.mascode.itineraire.data.repository.QuickActionRepository
 import com.mascode.itineraire.data.repository.ThemeRepository
 
 class AppContainer(context: Context) {
@@ -19,6 +20,7 @@ class AppContainer(context: Context) {
     ).addMigrations(
         DatabaseMigrations.MIGRATION_1_2,
         DatabaseMigrations.MIGRATION_2_3,
+        DatabaseMigrations.MIGRATION_3_4,
     ).build()
 
     val dayRepository = DayRepository(database.dayLogDao(), database.dayEventDao())
@@ -27,4 +29,5 @@ class AppContainer(context: Context) {
     val localAccountRepository = LocalAccountRepository(database.localAccountDao())
     val appSecurityRepository = AppSecurityRepository(database.appSecurityDao())
     val themeRepository = ThemeRepository(context)
+    val quickActionRepository = QuickActionRepository(database.quickActionDao())
 }

@@ -34,4 +34,31 @@ object DatabaseMigrations {
             )
         }
     }
+
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `quick_actions` (
+                    `id` TEXT NOT NULL,
+                    `label` TEXT NOT NULL,
+                    `eventType` TEXT NOT NULL,
+                    `placeId` TEXT,
+                    `notes` TEXT,
+                    `position` INTEGER NOT NULL,
+                    `createdAt` TEXT NOT NULL,
+                    `updatedAt` TEXT NOT NULL,
+                    PRIMARY KEY(`id`),
+                    FOREIGN KEY(`placeId`) REFERENCES `places`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL
+                )
+                """.trimIndent(),
+            )
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS `index_quick_actions_label` ON `quick_actions` (`label`)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_quick_actions_placeId` ON `quick_actions` (`placeId`)",
+            )
+        }
+    }
 }
