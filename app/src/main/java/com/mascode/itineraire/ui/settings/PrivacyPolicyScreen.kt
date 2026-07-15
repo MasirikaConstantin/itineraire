@@ -71,7 +71,7 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
             item {
                 PrivacySection(
                     title = "Données enregistrées",
-                    content = "L'application enregistre les informations que vous saisissez : profil local facultatif, lieux, événements de la journée, trajets, tronçons, modes de transport, horaires, durées, coûts et observations. Les préférences de thème et de protection sont également conservées.",
+                    content = "L'application enregistre les informations que vous saisissez : profil local facultatif, lieux et leurs coordonnées facultatives, événements de la journée, trajets, tronçons, modes de transport, horaires, durées, coûts et observations. Les préférences de thème et de protection sont également conservées.",
                 )
             }
             item {
@@ -83,13 +83,13 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
             item {
                 PrivacySection(
                     title = "Stockage et transmission",
-                    content = "Les données sont stockées dans l'espace privé de l'application sur votre téléphone. L'application ne possède actuellement aucun service en ligne, aucun outil d'analyse ou de publicité, et ne demande pas l'accès à Internet. Android peut néanmoins sauvegarder ou transférer les données de l'application selon les réglages du téléphone et du compte système.",
+                    content = "Les données personnelles sont stockées dans l'espace privé de l'application sur votre téléphone. Aucun compte en ligne, outil d'analyse ou service publicitaire n'est utilisé. La carte nécessite toutefois Internet pour charger des tuiles depuis OpenFreeMap : ce fournisseur reçoit les requêtes techniques nécessaires, notamment l'adresse IP et la zone de carte demandée, mais l'application ne lui transmet pas volontairement le nom, la catégorie ou l'historique local de vos lieux. Android peut aussi sauvegarder ou transférer les données de l'application selon les réglages du téléphone et du compte système.",
                 )
             }
             item {
                 PrivacySection(
                     title = "Localisation",
-                    content = "Les lieux et les trajets sont saisis manuellement. La version actuelle ne demande pas l'autorisation de localisation et n'accède pas à votre position GPS.",
+                    content = "La position d'un lieu est facultative. Vous pouvez placer le repère manuellement sur la carte sans autoriser la localisation. L'application demande l'accès à votre position uniquement lorsque vous touchez « Utiliser ma position actuelle », pendant que l'application est ouverte. Elle n'effectue aucun suivi continu ou en arrière-plan. Refuser l'autorisation n'empêche pas de créer ou d'utiliser un lieu.",
                 )
             }
             item {
@@ -107,7 +107,7 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
             item {
                 PrivacySection(
                     title = "Évolution de cette politique",
-                    content = "Cette page devra être mise à jour avant l'ajout d'une synchronisation, d'une sauvegarde distante, de la géolocalisation ou de tout service tiers qui modifierait le traitement des données.",
+                    content = "Cette page devra être mise à jour avant l'ajout d'une synchronisation, d'une sauvegarde distante, d'une analyse d'usage, de publicité ou de tout autre service qui modifierait le traitement des données.",
                 )
             }
             item {
