@@ -39,6 +39,8 @@ import com.mascode.itineraire.ui.AppViewModelFactory
 import com.mascode.itineraire.ui.auth.LockedScreen
 import com.mascode.itineraire.ui.history.HistoryScreen
 import com.mascode.itineraire.ui.history.HistoryViewModel
+import com.mascode.itineraire.ui.journey.ActiveJourneyScreen
+import com.mascode.itineraire.ui.journey.ActiveJourneyViewModel
 import com.mascode.itineraire.ui.places.PlacesScreen
 import com.mascode.itineraire.ui.places.PlacesViewModel
 import com.mascode.itineraire.ui.settings.ProfileScreen
@@ -58,6 +60,7 @@ private enum class Destination(val label: String, val icon: ImageVector) {
 }
 
 private const val MAIN_ROUTE = "main"
+private const val ACTIVE_JOURNEY_ROUTE = "journey/{journeyId}"
 private const val PROFILE_ROUTE = "settings/profile"
 private const val SECURITY_ROUTE = "settings/security"
 private const val THEME_ROUTE = "settings/theme"
@@ -174,12 +177,16 @@ private fun MainNavigation(
                                         pagerState.animateScrollToPage(Destination.PLACES.ordinal)
                                     }
                                 },
+                                onOpenJourney = { journeyId -> navController.navigate("journey/$journeyId") },
                             )
                         }
 
                         Destination.HISTORY -> {
                             val viewModel: HistoryViewModel = viewModel(factory = factory)
-                            HistoryScreen(viewModel)
+                            HistoryScreen(
+                                viewModel = viewModel,
+                                onOpenJourney = { journeyId -> navController.navigate("journey/$journeyId") },
+                            )
                         }
 
                         Destination.PLACES -> {
@@ -204,6 +211,14 @@ private fun MainNavigation(
                         )
                     }
                 }
+            }
+            composable(ACTIVE_JOURNEY_ROUTE) { entry ->
+                val journeyId = entry.arguments?.getString("journeyId") ?: return@composable
+                val viewModel: ActiveJourneyViewModel = viewModel(
+                    key = "active-journey-$journeyId",
+                    factory = factory.activeJourneyFactory(journeyId),
+                )
+                ActiveJourneyScreen(viewModel = viewModel, onBack = navController::popBackStack)
             }
             composable(PROFILE_ROUTE) {
                 ProfileScreen(

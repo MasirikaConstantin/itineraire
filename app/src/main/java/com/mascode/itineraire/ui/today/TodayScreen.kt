@@ -57,6 +57,7 @@ import java.util.Locale
 fun TodayScreen(
     viewModel: TodayViewModel,
     onOpenPlaces: () -> Unit,
+    onOpenJourney: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -86,6 +87,7 @@ fun TodayScreen(
                 state = state,
                 viewModel = viewModel,
                 onOpenPlaces = onOpenPlaces,
+                onOpenJourney = onOpenJourney,
                 onStartJourney = { showJourneyDialog = true },
                 modifier = Modifier.weight(1f),
             )
@@ -108,7 +110,7 @@ fun TodayScreen(
             places = state.places,
             onDismiss = { showJourneyDialog = false },
             onConfirm = { source, destination ->
-                viewModel.startJourney(source, destination)
+                viewModel.startJourney(source, destination, onOpenJourney)
                 showJourneyDialog = false
             },
         )
@@ -155,6 +157,7 @@ private fun DayContent(
     state: TodayUiState,
     viewModel: TodayViewModel,
     onOpenPlaces: () -> Unit,
+    onOpenJourney: (String) -> Unit,
     onStartJourney: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -210,7 +213,7 @@ private fun DayContent(
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("$source → $destination", style = MaterialTheme.typography.titleMedium)
                         Text("Départ : ${formatTime(journey.startedAt)}")
-                        Button(onClick = { viewModel.finishJourney(journey.id) }) { Text("Terminer le trajet") }
+                        Button(onClick = { onOpenJourney(journey.id) }) { Text("Ouvrir le trajet") }
                     }
                 }
             }

@@ -33,6 +33,9 @@ data class ActiveJourneyUiState(
 
     val nextSourcePlaceId: String?
         get() = legs.lastOrNull()?.destinationPlaceId ?: journey?.sourcePlaceId
+
+    val hasReachedFinalDestination: Boolean
+        get() = legs.lastOrNull()?.destinationPlaceId == journey?.destinationPlaceId
 }
 
 class ActiveJourneyViewModel(

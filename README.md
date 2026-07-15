@@ -103,6 +103,7 @@ com.mascode.itineraire
 │   └── model            Types et concepts métier
 ├── ui
 │   ├── today            Journée et trajet actif
+│   ├── journey          Suivi détaillé et résumé d'un trajet
 │   ├── auth             Verrou biométrique facultatif
 │   ├── history          Historique des trajets
 │   ├── places           Gestion des lieux
@@ -123,7 +124,9 @@ La version actuelle permet de :
 - créer et consulter des lieux classés par catégories (maison, études, travail, transport, santé, commerce et autres) ;
 - enregistrer le réveil et la sortie de la maison ;
 - démarrer et terminer un trajet entre deux lieux ;
-- consulter la durée des trajets dans l'historique ;
+- décomposer un trajet en tronçons avec lieux, transport, horaires, durée, prix en CDF et notes ;
+- signaler les embouteillages, attentes, pannes, problèmes météo et autres observations ;
+- consulter le résumé détaillé et le coût total d'un trajet depuis l'historique ;
 - consulter un premier écran de paramètres ;
 - choisir un thème clair, sombre ou synchronisé avec celui du téléphone ;
 - consulter la politique de confidentialité directement dans les paramètres ;

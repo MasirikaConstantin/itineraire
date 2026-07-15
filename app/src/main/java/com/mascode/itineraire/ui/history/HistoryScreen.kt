@@ -23,7 +23,11 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun HistoryScreen(viewModel: HistoryViewModel, modifier: Modifier = Modifier) {
+fun HistoryScreen(
+    viewModel: HistoryViewModel,
+    onOpenJourney: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     LazyColumn(
@@ -40,7 +44,7 @@ fun HistoryScreen(viewModel: HistoryViewModel, modifier: Modifier = Modifier) {
             items(state.journeys, key = { it.id }) { journey ->
                 val source = state.placesById[journey.sourcePlaceId]?.name ?: "Lieu inconnu"
                 val destination = state.placesById[journey.destinationPlaceId]?.name ?: "Lieu inconnu"
-                Card(Modifier.fillMaxWidth()) {
+                Card(onClick = { onOpenJourney(journey.id) }, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text("$source → $destination", style = MaterialTheme.typography.titleMedium)
                         Text(formatDateTime(journey.startedAt))
