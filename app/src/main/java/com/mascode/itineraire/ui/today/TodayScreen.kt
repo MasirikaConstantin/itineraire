@@ -331,11 +331,14 @@ private fun formatTime(instant: java.time.Instant): String =
 
 private val FULL_DATE_FORMATTER =
     DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(Locale.FRENCH)
+private val DAY_NAME_FORMATTER = DateTimeFormatter.ofPattern("EEEE", Locale.FRENCH)
 
 private fun dayTitle(date: LocalDate): String = when (date) {
     LocalDate.now() -> "Aujourd'hui"
     LocalDate.now().minusDays(1) -> "Hier"
-    else -> "Journée"
+    else -> date
+        .format(DAY_NAME_FORMATTER)
+        .replaceFirstChar { it.titlecase(Locale.FRENCH) }
 }
 
 private fun LocalDate.toUtcMillis(): Long = atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
