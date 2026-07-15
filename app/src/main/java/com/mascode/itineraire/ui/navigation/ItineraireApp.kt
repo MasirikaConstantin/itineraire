@@ -1,6 +1,12 @@
 package com.mascode.itineraire.ui.navigation
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -8,6 +14,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -22,10 +30,10 @@ import com.mascode.itineraire.ui.places.PlacesViewModel
 import com.mascode.itineraire.ui.today.TodayScreen
 import com.mascode.itineraire.ui.today.TodayViewModel
 
-private enum class Destination(val route: String, val label: String, val symbol: String) {
-    TODAY("today", "Aujourd'hui", "●"),
-    HISTORY("history", "Historique", "◷"),
-    PLACES("places", "Lieux", "⌂"),
+private enum class Destination(val route: String, val label: String, val icon: ImageVector) {
+    TODAY("today", "Aujourd'hui", Icons.Outlined.Home),
+    HISTORY("history", "Historique", Icons.Outlined.History),
+    PLACES("places", "Lieux", Icons.Outlined.Place),
 }
 
 @Composable
@@ -47,7 +55,13 @@ fun ItineraireApp(factory: AppViewModelFactory) {
                                 restoreState = true
                             }
                         },
-                        icon = { Text(destination.symbol) },
+                        icon = {
+                            Icon(
+                                imageVector = destination.icon,
+                                contentDescription = destination.label,
+                                modifier = Modifier.size(30.dp),
+                            )
+                        },
                         label = { Text(destination.label) },
                     )
                 }
