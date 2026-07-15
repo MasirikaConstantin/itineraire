@@ -33,7 +33,7 @@ L'interface doit rendre l'enregistrement rapide, tandis que le modèle de donné
 
 ### Respecter la vie privée
 
-Les déplacements peuvent révéler des informations sensibles. Les données sont donc privées et stockées dans l'espace local de l'application. Un profil local obligatoire protège l'accès à l'application sans envoyer d'identité à un serveur. La géolocalisation et la sauvegarde en ligne resteront facultatives lorsqu'elles seront ajoutées.
+Les déplacements peuvent révéler des informations sensibles. Les données sont donc privées et stockées dans l'espace local de l'application. Le propriétaire peut créer un profil local et activer un verrou biométrique s'il souhaite protéger l'accès, sans envoyer d'identité à un serveur. Ces deux options restent facultatives et indépendantes.
 
 ## Vocabulaire métier
 
@@ -43,7 +43,8 @@ Les déplacements peuvent révéler des informations sensibles. Les données son
 - **Trajet (`Journey`)** : déplacement complet entre une source et une destination finale.
 - **Tronçon (`JourneyLeg`)** : partie d'un trajet effectuée avec un mode de transport donné.
 - **Observation (`JourneyObservation`)** : information contextuelle comme une attente, un embouteillage, une panne ou la météo.
-- **Compte local (`LocalAccount`)** : profil unique stocké sur le téléphone et utilisé pour contrôler l'accès à l'application.
+- **Profil local (`LocalAccount`)** : identité facultative stockée uniquement sur le téléphone.
+- **Sécurité (`AppSecurity`)** : préférence indépendante qui indique si l'application doit être verrouillée.
 
 ## Modèle de données
 
@@ -62,6 +63,11 @@ erDiagram
         int id PK
         string displayName
         instant createdAt
+    }
+    APP_SECURITY {
+        int id PK
+        boolean biometricLockEnabled
+        instant updatedAt
     }
 ```
 

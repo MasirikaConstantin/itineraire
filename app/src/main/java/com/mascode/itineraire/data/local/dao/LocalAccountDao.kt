@@ -13,6 +13,9 @@ interface LocalAccountDao {
     @Query("SELECT * FROM local_account WHERE id = 1 LIMIT 1")
     fun observe(): Flow<LocalAccountEntity?>
 
+    @Query("SELECT * FROM local_account WHERE id = 1 LIMIT 1")
+    suspend fun get(): LocalAccountEntity?
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(account: LocalAccountEntity)
 

@@ -19,4 +19,19 @@ object DatabaseMigrations {
             )
         }
     }
+
+    val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `app_security` (
+                    `id` INTEGER NOT NULL,
+                    `biometricLockEnabled` INTEGER NOT NULL,
+                    `updatedAt` TEXT NOT NULL,
+                    PRIMARY KEY(`id`)
+                )
+                """.trimIndent(),
+            )
+        }
+    }
 }
