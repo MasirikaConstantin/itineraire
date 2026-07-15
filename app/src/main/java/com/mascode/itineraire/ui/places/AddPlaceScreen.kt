@@ -7,6 +7,9 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.os.CancellationSignal
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -48,6 +51,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mascode.itineraire.domain.model.PlaceCategory
 import java.util.Locale
 
+private const val LOCATION_TIMEOUT_MILLIS = 12_000L
+private const val IMMEDIATE_CACHED_LOCATION_AGE_MILLIS = 30_000L
+private const val FALLBACK_CACHED_LOCATION_AGE_MILLIS = 10 * 60_000L
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun PlaceEditorScreen(
@@ -65,6 +72,8 @@ fun PlaceEditorScreen(
     var latitude by remember(placeId) { mutableStateOf<Double?>(null) }
     var longitude by remember(placeId) { mutableStateOf<Double?>(null) }
     var locationMessage by remember(placeId) { mutableStateOf<String?>(null) }
+    var locationMessageIsError by remember(placeId) { mutableStateOf(false) }
+    var isLocating by remember(placeId) { mutableStateOf(false) }
 
     LaunchedEffect(placeId, existingPlace) {
         if (placeId != null && existingPlace != null && initializedPlaceId != placeId) {
@@ -77,15 +86,26 @@ fun PlaceEditorScreen(
     }
 
     fun loadCurrentLocation() {
+        isLocating = true
+        locationMessageIsError = false
         locationMessage = "Recherche de votre position…"
         findCurrentLocation(
             context = context,
-            onLocation = { location ->
+            onLocation = { location, fromCache ->
+                isLocating = false
                 latitude = location.latitude
                 longitude = location.longitude
-                locationMessage = "Position actuelle enregistrée dans le formulaire."
+                locationMessage = if (fromCache) {
+                    "Une position récente du téléphone a été enregistrée dans le formulaire."
+                } else {
+                    "Position actuelle enregistrée dans le formulaire."
+                }
             },
-            onError = { locationMessage = it },
+            onError = {
+                isLocating = false
+                locationMessageIsError = true
+                locationMessage = it
+            },
         )
     }
 
@@ -95,6 +115,7 @@ fun PlaceEditorScreen(
         if (grants.values.any { it }) {
             loadCurrentLocation()
         } else {
+            locationMessageIsError = true
             locationMessage = "La permission de localisation a été refusée. Le lieu peut être enregistré sans position."
         }
     }
@@ -180,10 +201,17 @@ fun PlaceEditorScreen(
                             )
                         }
                     },
+                    enabled = !isLocating,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Icon(Icons.Outlined.MyLocation, contentDescription = null)
-                    Text(if (latitude == null) "  Utiliser ma position actuelle" else "  Mettre à jour avec ma position actuelle")
+                    Text(
+                        when {
+                            isLocating -> "  Recherche en cours…"
+                            latitude == null -> "  Utiliser ma position actuelle"
+                            else -> "  Mettre à jour avec ma position actuelle"
+                        },
+                    )
                 }
             }
             if (latitude != null) {
@@ -193,6 +221,7 @@ fun PlaceEditorScreen(
                             latitude = null
                             longitude = null
                             locationMessage = null
+                            locationMessageIsError = false
                         },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
@@ -204,7 +233,11 @@ fun PlaceEditorScreen(
                 item {
                     Text(
                         message,
-                        color = if (latitude == null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                        color = if (locationMessageIsError) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.primary
+                        },
                     )
                 }
             }
@@ -244,7 +277,7 @@ private fun hasLocationPermission(context: Context): Boolean =
 @SuppressLint("MissingPermission")
 private fun findCurrentLocation(
     context: Context,
-    onLocation: (Location) -> Unit,
+    onLocation: (Location, Boolean) -> Unit,
     onError: (String) -> Unit,
 ) {
     if (!hasLocationPermission(context)) {
@@ -252,18 +285,81 @@ private fun findCurrentLocation(
         return
     }
     val manager = context.getSystemService(LocationManager::class.java)
-    val provider = when {
-        manager.isProviderEnabled(LocationManager.GPS_PROVIDER) -> LocationManager.GPS_PROVIDER
-        manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) -> LocationManager.NETWORK_PROVIDER
-        else -> {
-            onError("Activez la localisation du téléphone pour enregistrer la position actuelle.")
-            return
+    if (!manager.isLocationEnabled) {
+        onError("Activez la localisation du téléphone pour enregistrer la position actuelle.")
+        return
+    }
+
+    val providers = listOf(
+        LocationManager.FUSED_PROVIDER,
+        LocationManager.NETWORK_PROVIDER,
+        LocationManager.GPS_PROVIDER,
+    ).filter { provider ->
+        provider in manager.allProviders && runCatching { manager.isProviderEnabled(provider) }.getOrDefault(false)
+    }
+    if (providers.isEmpty()) {
+        onError("Aucun fournisseur de localisation n'est disponible sur ce téléphone.")
+        return
+    }
+
+    val cachedLocation = providers
+        .mapNotNull { provider -> runCatching { manager.getLastKnownLocation(provider) }.getOrNull() }
+        .filter(::isValidLocation)
+        .maxByOrNull { it.elapsedRealtimeNanos }
+    if (cachedLocation != null && locationAgeMillis(cachedLocation) <= IMMEDIATE_CACHED_LOCATION_AGE_MILLIS) {
+        onLocation(cachedLocation, true)
+        return
+    }
+
+    val handler = Handler(Looper.getMainLooper())
+    val signals = providers.map { CancellationSignal() }
+    var completed = false
+    var remainingProviders = providers.size
+
+    fun complete(location: Location?, fromCache: Boolean = false) {
+        if (completed) return
+        completed = true
+        signals.forEach(CancellationSignal::cancel)
+        if (location != null) {
+            onLocation(location, fromCache)
+        } else {
+            onError("Impossible d'obtenir une position récente. Essayez près d'une fenêtre ou à l'extérieur.")
         }
     }
-    manager.getCurrentLocation(provider, CancellationSignal(), context.mainExecutor) { location ->
-        if (location != null) onLocation(location) else onError("La position actuelle n'est pas disponible.")
+
+    val timeout = Runnable {
+        val fallback = cachedLocation?.takeIf {
+            locationAgeMillis(it) <= FALLBACK_CACHED_LOCATION_AGE_MILLIS
+        }
+        complete(fallback, fromCache = fallback != null)
+    }
+    handler.postDelayed(timeout, LOCATION_TIMEOUT_MILLIS)
+
+    providers.forEachIndexed { index, provider ->
+        manager.getCurrentLocation(provider, signals[index], context.mainExecutor) { location ->
+            if (completed) return@getCurrentLocation
+            if (location != null && isValidLocation(location)) {
+                handler.removeCallbacks(timeout)
+                complete(location)
+            } else {
+                remainingProviders -= 1
+                if (remainingProviders == 0) {
+                    handler.removeCallbacks(timeout)
+                    val fallback = cachedLocation?.takeIf {
+                        locationAgeMillis(it) <= FALLBACK_CACHED_LOCATION_AGE_MILLIS
+                    }
+                    complete(fallback, fromCache = fallback != null)
+                }
+            }
+        }
     }
 }
+
+private fun isValidLocation(location: Location): Boolean =
+    location.latitude in -90.0..90.0 && location.longitude in -180.0..180.0
+
+private fun locationAgeMillis(location: Location): Long =
+    ((SystemClock.elapsedRealtimeNanos() - location.elapsedRealtimeNanos) / 1_000_000L).coerceAtLeast(0L)
 
 private fun formatCoordinates(latitude: Double, longitude: Double): String = String.format(
     Locale.FRENCH,
