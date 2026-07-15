@@ -167,6 +167,7 @@ Lors d'une modification de table :
 - Les dates absolues utilisent `Instant` et les journées civiles utilisent `LocalDate`.
 - Les fonctions non disponibles doivent être présentées comme « à venir », et non simulées.
 - Chaque modification doit être compilée et vérifiée avant son commit.
+- Toute évolution importante doit mettre à jour ce README dans le même groupe de modifications, notamment les sections concernant l'état actuel, l'architecture et les prochaines étapes.
 - Les commits sont rédigés en français et regroupés par apport fonctionnel cohérent.
 
 Exemples de messages :
