@@ -59,6 +59,14 @@ class AppViewModel(
         }
     }
 
+    fun deleteProfile() {
+        viewModelScope.launch {
+            runCatching { accountRepository.delete() }
+                .onSuccess { message.value = "Profil local supprimé." }
+                .onFailure { message.value = "Impossible de supprimer le profil local." }
+        }
+    }
+
     fun setBiometricLockEnabled(enabled: Boolean) {
         viewModelScope.launch {
             runCatching {

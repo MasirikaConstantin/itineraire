@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Backup
@@ -15,8 +16,8 @@ import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Storage
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -31,8 +32,10 @@ import com.mascode.itineraire.data.local.entity.LocalAccountEntity
 
 @Composable
 fun SettingsScreen(
-    account: LocalAccountEntity,
-    onLock: () -> Unit,
+    account: LocalAccountEntity?,
+    biometricLockEnabled: Boolean,
+    onOpenProfile: () -> Unit,
+    onOpenSecurity: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -43,33 +46,27 @@ fun SettingsScreen(
             Spacer(Modifier.height(8.dp))
             Text("Paramètres", style = MaterialTheme.typography.headlineMedium)
             Text(
-                "Gérez les préférences, les données et le futur compte de l'application.",
+                "Gérez le profil, la sécurité et les préférences de l'application.",
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
 
         item {
-            SectionTitle("Compte")
+            SectionTitle("Compte et sécurité")
             Card(Modifier.fillMaxWidth()) {
                 SettingsRow(
                     icon = Icons.Outlined.AccountCircle,
-                    title = account.displayName,
-                    description = "Compte local actif sur ce téléphone",
+                    title = "Profil local",
+                    description = account?.displayName ?: "Aucun profil — facultatif",
+                    onClick = onOpenProfile,
                 )
                 HorizontalDivider(Modifier.padding(horizontal = 16.dp))
-                Text(
-                    text = "Ce compte ne quitte pas l'appareil. Il protège l'accès à vos déplacements.",
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                SettingsRow(
+                    icon = Icons.Outlined.Security,
+                    title = "Sécurité et authentification",
+                    description = if (biometricLockEnabled) "Protection active" else "Protection inactive",
+                    onClick = onOpenSecurity,
                 )
-                Button(
-                    onClick = onLock,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                ) {
-                    Icon(Icons.Outlined.Lock, contentDescription = null)
-                    Text("  Verrouiller maintenant")
-                }
             }
         }
 
@@ -132,8 +129,14 @@ private fun SectionTitle(title: String) {
 }
 
 @Composable
-private fun SettingsRow(icon: ImageVector, title: String, description: String) {
+private fun SettingsRow(
+    icon: ImageVector,
+    title: String,
+    description: String,
+    onClick: (() -> Unit)? = null,
+) {
     ListItem(
+        modifier = if (onClick == null) Modifier else Modifier.clickable(onClick = onClick),
         headlineContent = { Text(title) },
         supportingContent = { Text(description) },
         leadingContent = {
@@ -142,6 +145,11 @@ private fun SettingsRow(icon: ImageVector, title: String, description: String) {
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
             )
+        },
+        trailingContent = onClick?.let {
+            {
+                Icon(Icons.Outlined.ChevronRight, contentDescription = "Ouvrir")
+            }
         },
     )
 }

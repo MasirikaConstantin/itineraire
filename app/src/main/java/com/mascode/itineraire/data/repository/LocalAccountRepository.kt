@@ -17,5 +17,5 @@ class LocalAccountRepository(private val accountDao: LocalAccountDao) {
         }
     }
 
-    suspend fun create(displayName: String) = save(displayName)
+    suspend fun delete() = accountDao.delete()
 }

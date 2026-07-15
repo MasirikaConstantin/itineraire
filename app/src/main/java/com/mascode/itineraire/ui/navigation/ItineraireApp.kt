@@ -31,13 +31,14 @@ import androidx.navigation.compose.rememberNavController
 import com.mascode.itineraire.ui.AppViewModelFactory
 import com.mascode.itineraire.ui.AppAccessState
 import com.mascode.itineraire.ui.AppViewModel
-import com.mascode.itineraire.ui.auth.AccountCreationScreen
 import com.mascode.itineraire.ui.auth.LockedScreen
 import com.mascode.itineraire.ui.history.HistoryScreen
 import com.mascode.itineraire.ui.history.HistoryViewModel
 import com.mascode.itineraire.ui.places.PlacesScreen
 import com.mascode.itineraire.ui.places.PlacesViewModel
 import com.mascode.itineraire.ui.settings.SettingsScreen
+import com.mascode.itineraire.ui.settings.ProfileScreen
+import com.mascode.itineraire.ui.settings.SecurityScreen
 import com.mascode.itineraire.ui.today.TodayScreen
 import com.mascode.itineraire.ui.today.TodayViewModel
 import androidx.fragment.app.FragmentActivity
@@ -49,6 +50,9 @@ private enum class Destination(val route: String, val label: String, val icon: I
     PLACES("places", "Lieux", Icons.Outlined.Place),
     SETTINGS("settings", "Paramètres", Icons.Outlined.Settings),
 }
+
+private const val PROFILE_ROUTE = "settings/profile"
+private const val SECURITY_ROUTE = "settings/security"
 
 @Composable
 fun ItineraireApp(
@@ -63,17 +67,9 @@ fun ItineraireApp(
             CircularProgressIndicator()
         }
 
-        is AppAccessState.NeedsAccount -> AccountCreationScreen(
-            activity = activity,
-            errorMessage = state.errorMessage,
-            onCreateAccount = viewModel::createAccount,
-            onAuthenticationError = viewModel::reportAuthenticationError,
-            onClearError = viewModel::clearError,
-        )
-
         is AppAccessState.Locked -> LockedScreen(
             activity = activity,
-            displayName = state.account.displayName,
+            displayName = state.account?.displayName,
             errorMessage = state.errorMessage,
             onAuthenticated = viewModel::unlock,
             onAuthenticationError = viewModel::reportAuthenticationError,
@@ -82,7 +78,15 @@ fun ItineraireApp(
         is AppAccessState.Authenticated -> MainNavigation(
             factory = factory,
             account = state.account,
+            activity = activity,
+            biometricLockEnabled = state.biometricLockEnabled,
+            message = state.message,
             onLock = viewModel::lock,
+            onSaveProfile = viewModel::saveProfile,
+            onDeleteProfile = viewModel::deleteProfile,
+            onProtectionChanged = viewModel::setBiometricLockEnabled,
+            onAuthenticationError = viewModel::reportAuthenticationError,
+            onClearMessage = viewModel::clearMessage,
         )
     }
 }
@@ -90,35 +94,46 @@ fun ItineraireApp(
 @Composable
 private fun MainNavigation(
     factory: AppViewModelFactory,
-    account: LocalAccountEntity,
+    account: LocalAccountEntity?,
+    activity: FragmentActivity,
+    biometricLockEnabled: Boolean,
+    message: String?,
     onLock: () -> Unit,
+    onSaveProfile: (String) -> Unit,
+    onDeleteProfile: () -> Unit,
+    onProtectionChanged: (Boolean) -> Unit,
+    onAuthenticationError: (String) -> Unit,
+    onClearMessage: () -> Unit,
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+    val showBottomBar = Destination.entries.any { it.route == currentRoute }
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                Destination.entries.forEach { destination ->
-                    NavigationBarItem(
-                        selected = currentRoute == destination.route,
-                        onClick = {
-                            navController.navigate(destination.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = destination.icon,
-                                contentDescription = destination.label,
-                                modifier = Modifier.size(30.dp),
-                            )
-                        },
-                        label = { Text(destination.label) },
-                    )
+            if (showBottomBar) {
+                NavigationBar {
+                    Destination.entries.forEach { destination ->
+                        NavigationBarItem(
+                            selected = currentRoute == destination.route,
+                            onClick = {
+                                navController.navigate(destination.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = destination.icon,
+                                    contentDescription = destination.label,
+                                    modifier = Modifier.size(30.dp),
+                                )
+                            },
+                            label = { Text(destination.label) },
+                        )
+                    }
                 }
             }
         },
@@ -141,7 +156,39 @@ private fun MainNavigation(
                 PlacesScreen(viewModel)
             }
             composable(Destination.SETTINGS.route) {
-                SettingsScreen(account = account, onLock = onLock)
+                SettingsScreen(
+                    account = account,
+                    biometricLockEnabled = biometricLockEnabled,
+                    onOpenProfile = {
+                        onClearMessage()
+                        navController.navigate(PROFILE_ROUTE)
+                    },
+                    onOpenSecurity = {
+                        onClearMessage()
+                        navController.navigate(SECURITY_ROUTE)
+                    },
+                )
+            }
+            composable(PROFILE_ROUTE) {
+                ProfileScreen(
+                    account = account,
+                    message = message,
+                    onBack = navController::popBackStack,
+                    onSave = onSaveProfile,
+                    onDelete = onDeleteProfile,
+                    onClearMessage = onClearMessage,
+                )
+            }
+            composable(SECURITY_ROUTE) {
+                SecurityScreen(
+                    activity = activity,
+                    biometricLockEnabled = biometricLockEnabled,
+                    message = message,
+                    onBack = navController::popBackStack,
+                    onProtectionChanged = onProtectionChanged,
+                    onLockNow = onLock,
+                    onAuthenticationError = onAuthenticationError,
+                )
             }
         }
     }

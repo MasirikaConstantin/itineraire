@@ -21,4 +21,7 @@ interface LocalAccountDao {
 
     @Update
     suspend fun update(account: LocalAccountEntity)
+
+    @Query("DELETE FROM local_account WHERE id = 1")
+    suspend fun delete()
 }

@@ -102,10 +102,10 @@ com.mascode.itineraire
 │   └── model            Types et concepts métier
 ├── ui
 │   ├── today            Journée et trajet actif
-│   ├── auth             Compte local et verrou biométrique
+│   ├── auth             Verrou biométrique facultatif
 │   ├── history          Historique des trajets
 │   ├── places           Gestion des lieux
-│   ├── settings         Paramètres et compte local
+│   ├── settings         Paramètres, profil et sécurité
 │   └── navigation       Navigation principale
 └── AppContainer.kt      Création des dépendances
 ```
@@ -116,8 +116,9 @@ L'injection des dépendances est volontairement manuelle pour garder le projet s
 
 La version actuelle permet de :
 
-- créer obligatoirement un compte local au premier lancement ;
-- protéger l'accès par empreinte, visage compatible ou verrouillage du téléphone ;
+- utiliser l'application sans créer de compte ni activer de protection ;
+- créer, modifier ou supprimer un profil local facultatif depuis une page dédiée ;
+- activer facultativement la protection par empreinte, visage compatible ou verrouillage du téléphone ;
 - créer et consulter des lieux ;
 - enregistrer le réveil et la sortie de la maison ;
 - démarrer et terminer un trajet entre deux lieux ;
@@ -129,11 +130,11 @@ Les entités pour les tronçons et les observations existent déjà, mais leur p
 
 ## Sécurité et authentification
 
-Le compte est un profil local unique. Il ne demande ni adresse électronique ni mot de passe applicatif et n'est envoyé à aucun serveur. Sa création est confirmée par la sécurité déjà configurée sur le téléphone.
+Le profil local et la protection de l'application sont deux options indépendantes. Le profil sert uniquement à personnaliser l'expérience ; il ne demande ni adresse électronique ni mot de passe et n'est envoyé à aucun serveur. L'application reste entièrement utilisable sans profil.
 
-L'application utilise le dialogue système `BiometricPrompt` avec `BIOMETRIC_WEAK | DEVICE_CREDENTIAL`. Selon le matériel et la configuration de l'appareil, Android propose une empreinte, une reconnaissance faciale compatible ou le code, schéma ou mot de passe de verrouillage. L'application n'accède jamais directement aux données biométriques. Voir la [documentation Android sur l'authentification biométrique](https://developer.android.com/identity/sign-in/biometric-auth).
+La protection s'active explicitement dans **Paramètres → Sécurité et authentification**. L'application utilise alors le dialogue système `BiometricPrompt` avec `BIOMETRIC_WEAK | DEVICE_CREDENTIAL`. Selon le matériel et la configuration de l'appareil, Android propose une empreinte, une reconnaissance faciale compatible ou le code, schéma ou mot de passe de verrouillage. L'application n'accède jamais directement aux données biométriques. Voir la [documentation Android sur l'authentification biométrique](https://developer.android.com/identity/sign-in/biometric-auth).
 
-L'accès est reverrouillé lorsque l'application passe en arrière-plan. Cette protection contrôle l'interface mais ne chiffre pas encore le fichier SQLite lui-même ; le chiffrement local pourra constituer une couche de sécurité supplémentaire.
+Lorsque la protection est active, l'accès est reverrouillé dès que l'application passe en arrière-plan. Lorsqu'elle est inactive, aucun écran d'authentification n'est affiché. Les pages Profil, Sécurité et Verrouillage utilisent les couleurs Material du thème clair ou sombre actif. Cette protection contrôle l'interface mais ne chiffre pas encore le fichier SQLite lui-même ; le chiffrement local pourra constituer une couche de sécurité supplémentaire.
 
 ## Environnement de développement
 
