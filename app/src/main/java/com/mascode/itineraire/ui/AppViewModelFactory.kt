@@ -4,10 +4,24 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.mascode.itineraire.AppContainer
 import com.mascode.itineraire.ui.history.HistoryViewModel
+import com.mascode.itineraire.ui.journey.ActiveJourneyViewModel
 import com.mascode.itineraire.ui.places.PlacesViewModel
 import com.mascode.itineraire.ui.today.TodayViewModel
 
 class AppViewModelFactory(private val container: AppContainer) : ViewModelProvider.Factory {
+    fun activeJourneyFactory(journeyId: String): ViewModelProvider.Factory =
+        object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                require(modelClass.isAssignableFrom(ActiveJourneyViewModel::class.java))
+                return ActiveJourneyViewModel(
+                    journeyId = journeyId,
+                    journeyRepository = container.journeyRepository,
+                    placeRepository = container.placeRepository,
+                ) as T
+            }
+        }
+
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
         modelClass.isAssignableFrom(AppViewModel::class.java) ->

@@ -92,8 +92,17 @@ class TodayViewModel(
 
     fun addEvent(type: DayEventType) = runAction { id -> dayRepository.addEvent(id, type) }
 
-    fun startJourney(sourceId: String, destinationId: String) = runAction { id ->
-        journeyRepository.start(id, sourceId, destinationId)
+    fun startJourney(
+        sourceId: String,
+        destinationId: String,
+        onStarted: (String) -> Unit = {},
+    ) {
+        val id = uiState.value.dayId ?: return
+        viewModelScope.launch {
+            runCatching { journeyRepository.start(id, sourceId, destinationId) }
+                .onSuccess(onStarted)
+                .onFailure { errorMessage.value = it.message ?: "Impossible de démarrer le trajet." }
+        }
     }
 
     fun finishJourney(journeyId: String) {
