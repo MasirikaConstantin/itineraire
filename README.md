@@ -96,9 +96,10 @@ com.mascode.itineraire
 │   └── model            Types et concepts métier
 ├── ui
 │   ├── today            Journée et trajet actif
+│   ├── auth             Compte local et verrou biométrique
 │   ├── history          Historique des trajets
 │   ├── places           Gestion des lieux
-│   ├── settings         Paramètres et futur compte
+│   ├── settings         Paramètres et compte local
 │   └── navigation       Navigation principale
 └── AppContainer.kt      Création des dépendances
 ```
@@ -109,6 +110,8 @@ L'injection des dépendances est volontairement manuelle pour garder le projet s
 
 La version actuelle permet de :
 
+- créer obligatoirement un compte local au premier lancement ;
+- protéger l'accès par empreinte, visage compatible ou verrouillage du téléphone ;
 - créer et consulter des lieux ;
 - enregistrer le réveil et la sortie de la maison ;
 - démarrer et terminer un trajet entre deux lieux ;
@@ -117,6 +120,14 @@ La version actuelle permet de :
 - conserver toutes les informations dans une base Room locale.
 
 Les entités pour les tronçons et les observations existent déjà, mais leur parcours de saisie reste à construire.
+
+## Sécurité et authentification
+
+Le compte est un profil local unique. Il ne demande ni adresse électronique ni mot de passe applicatif et n'est envoyé à aucun serveur. Sa création est confirmée par la sécurité déjà configurée sur le téléphone.
+
+L'application utilise le dialogue système `BiometricPrompt` avec `BIOMETRIC_WEAK | DEVICE_CREDENTIAL`. Selon le matériel et la configuration de l'appareil, Android propose une empreinte, une reconnaissance faciale compatible ou le code, schéma ou mot de passe de verrouillage. L'application n'accède jamais directement aux données biométriques. Voir la [documentation Android sur l'authentification biométrique](https://developer.android.com/identity/sign-in/biometric-auth).
+
+L'accès est reverrouillé lorsque l'application passe en arrière-plan. Cette protection contrôle l'interface mais ne chiffre pas encore le fichier SQLite lui-même ; le chiffrement local pourra constituer une couche de sécurité supplémentaire.
 
 ## Environnement de développement
 
@@ -204,5 +215,5 @@ Afficher les statistiques mensuelles
 4. Modification et suppression des données.
 5. Statistiques par période et par itinéraire.
 6. Export et restauration locale.
-7. Compte et sauvegarde en ligne facultatifs.
+7. Sauvegarde en ligne et identité distante facultatives, distinctes du compte local.
 8. Géolocalisation facultative.

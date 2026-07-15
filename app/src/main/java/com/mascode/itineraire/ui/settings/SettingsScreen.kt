@@ -15,6 +15,8 @@ import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Storage
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -25,9 +27,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import com.mascode.itineraire.data.local.entity.LocalAccountEntity
 
 @Composable
-fun SettingsScreen(modifier: Modifier = Modifier) {
+fun SettingsScreen(
+    account: LocalAccountEntity,
+    onLock: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     LazyColumn(
         modifier = modifier.fillMaxSize().padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -46,16 +53,23 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             Card(Modifier.fillMaxWidth()) {
                 SettingsRow(
                     icon = Icons.Outlined.AccountCircle,
-                    title = "Aucun compte connecté",
-                    description = "Vos données restent uniquement sur ce téléphone.",
+                    title = account.displayName,
+                    description = "Compte local actif sur ce téléphone",
                 )
                 HorizontalDivider(Modifier.padding(horizontal = 16.dp))
                 Text(
-                    text = "La connexion et la synchronisation seront ajoutées avec la sauvegarde en ligne.",
+                    text = "Ce compte ne quitte pas l'appareil. Il protège l'accès à vos déplacements.",
                     modifier = Modifier.padding(16.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                Button(
+                    onClick = onLock,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                ) {
+                    Icon(Icons.Outlined.Lock, contentDescription = null)
+                    Text("  Verrouiller maintenant")
+                }
             }
         }
 

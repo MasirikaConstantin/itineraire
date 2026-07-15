@@ -10,6 +10,9 @@ import com.mascode.itineraire.ui.today.TodayViewModel
 class AppViewModelFactory(private val container: AppContainer) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
+        modelClass.isAssignableFrom(AppViewModel::class.java) ->
+            AppViewModel(container.localAccountRepository) as T
+
         modelClass.isAssignableFrom(TodayViewModel::class.java) -> TodayViewModel(
             container.dayRepository,
             container.placeRepository,

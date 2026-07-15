@@ -1,5 +1,7 @@
 package com.mascode.itineraire.ui.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -8,6 +10,7 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -16,14 +19,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.mascode.itineraire.ui.AppViewModelFactory
+import com.mascode.itineraire.ui.AppAccessState
+import com.mascode.itineraire.ui.AppViewModel
+import com.mascode.itineraire.ui.auth.AccountCreationScreen
+import com.mascode.itineraire.ui.auth.LockedScreen
 import com.mascode.itineraire.ui.history.HistoryScreen
 import com.mascode.itineraire.ui.history.HistoryViewModel
 import com.mascode.itineraire.ui.places.PlacesScreen
@@ -31,6 +40,8 @@ import com.mascode.itineraire.ui.places.PlacesViewModel
 import com.mascode.itineraire.ui.settings.SettingsScreen
 import com.mascode.itineraire.ui.today.TodayScreen
 import com.mascode.itineraire.ui.today.TodayViewModel
+import androidx.fragment.app.FragmentActivity
+import com.mascode.itineraire.data.local.entity.LocalAccountEntity
 
 private enum class Destination(val route: String, val label: String, val icon: ImageVector) {
     TODAY("today", "Aujourd'hui", Icons.Outlined.Home),
@@ -40,7 +51,48 @@ private enum class Destination(val route: String, val label: String, val icon: I
 }
 
 @Composable
-fun ItineraireApp(factory: AppViewModelFactory) {
+fun ItineraireApp(
+    factory: AppViewModelFactory,
+    activity: FragmentActivity,
+    viewModel: AppViewModel,
+) {
+    val accessState by viewModel.accessState.collectAsStateWithLifecycle()
+
+    when (val state = accessState) {
+        AppAccessState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+
+        is AppAccessState.NeedsAccount -> AccountCreationScreen(
+            activity = activity,
+            errorMessage = state.errorMessage,
+            onCreateAccount = viewModel::createAccount,
+            onAuthenticationError = viewModel::reportAuthenticationError,
+            onClearError = viewModel::clearError,
+        )
+
+        is AppAccessState.Locked -> LockedScreen(
+            activity = activity,
+            displayName = state.account.displayName,
+            errorMessage = state.errorMessage,
+            onAuthenticated = viewModel::unlock,
+            onAuthenticationError = viewModel::reportAuthenticationError,
+        )
+
+        is AppAccessState.Authenticated -> MainNavigation(
+            factory = factory,
+            account = state.account,
+            onLock = viewModel::lock,
+        )
+    }
+}
+
+@Composable
+private fun MainNavigation(
+    factory: AppViewModelFactory,
+    account: LocalAccountEntity,
+    onLock: () -> Unit,
+) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -89,7 +141,7 @@ fun ItineraireApp(factory: AppViewModelFactory) {
                 PlacesScreen(viewModel)
             }
             composable(Destination.SETTINGS.route) {
-                SettingsScreen()
+                SettingsScreen(account = account, onLock = onLock)
             }
         }
     }
