@@ -12,6 +12,9 @@ import java.time.Instant
 
 @Dao
 interface JourneyDao {
+    @Query("SELECT * FROM journeys WHERE id = :journeyId LIMIT 1")
+    fun observeById(journeyId: String): Flow<JourneyEntity?>
+
     @Query("SELECT * FROM journeys WHERE dayId = :dayId ORDER BY startedAt DESC")
     fun observeForDay(dayId: String): Flow<List<JourneyEntity>>
 
@@ -26,7 +29,7 @@ interface JourneyDao {
            SET status = :status, endedAt = :endedAt, updatedAt = :endedAt
            WHERE id = :journeyId""",
     )
-    suspend fun finish(journeyId: String, status: JourneyStatus, endedAt: Instant)
+    suspend fun updateStatus(journeyId: String, status: JourneyStatus, endedAt: Instant): Int
 
     @Insert
     suspend fun insertLeg(leg: JourneyLegEntity)
@@ -34,6 +37,29 @@ interface JourneyDao {
     @Query("SELECT * FROM journey_legs WHERE journeyId = :journeyId ORDER BY position")
     fun observeLegs(journeyId: String): Flow<List<JourneyLegEntity>>
 
+    @Query("SELECT * FROM journey_legs WHERE journeyId = :journeyId AND endedAt IS NULL LIMIT 1")
+    suspend fun findActiveLeg(journeyId: String): JourneyLegEntity?
+
+    @Query("SELECT COALESCE(MAX(position), -1) + 1 FROM journey_legs WHERE journeyId = :journeyId")
+    suspend fun nextLegPosition(journeyId: String): Int
+
+    @Query(
+        """UPDATE journey_legs
+           SET endedAt = :endedAt, cost = :cost, notes = :notes, updatedAt = :endedAt
+           WHERE id = :legId AND endedAt IS NULL""",
+    )
+    suspend fun finishLeg(legId: String, endedAt: Instant, cost: Long, notes: String?): Int
+
+    @Query(
+        """UPDATE journey_legs
+           SET endedAt = :endedAt, updatedAt = :endedAt
+           WHERE journeyId = :journeyId AND endedAt IS NULL""",
+    )
+    suspend fun closeActiveLeg(journeyId: String, endedAt: Instant)
+
     @Insert
     suspend fun insertObservation(observation: JourneyObservationEntity)
+
+    @Query("SELECT * FROM journey_observations WHERE journeyId = :journeyId ORDER BY occurredAt DESC")
+    fun observeObservations(journeyId: String): Flow<List<JourneyObservationEntity>>
 }
