@@ -53,6 +53,7 @@ import com.mascode.itineraire.ui.settings.ThemeScreen
 import com.mascode.itineraire.ui.today.TodayScreen
 import com.mascode.itineraire.ui.today.TodayViewModel
 import com.mascode.itineraire.ui.today.AddEventScreen
+import com.mascode.itineraire.ui.today.QuickActionsScreen
 import kotlinx.coroutines.launch
 
 private enum class Destination(val label: String, val icon: ImageVector) {
@@ -67,6 +68,7 @@ private const val ACTIVE_JOURNEY_ROUTE = "journey/{journeyId}"
 private const val ADD_PLACE_ROUTE = "places/add"
 private const val EDIT_PLACE_ROUTE = "places/edit/{placeId}"
 private const val ADD_EVENT_ROUTE = "events/add"
+private const val QUICK_ACTIONS_ROUTE = "events/quick-actions"
 private const val PROFILE_ROUTE = "settings/profile"
 private const val SECURITY_ROUTE = "settings/security"
 private const val THEME_ROUTE = "settings/theme"
@@ -185,6 +187,7 @@ private fun MainNavigation(
                                 },
                                 onOpenJourney = { journeyId -> navController.navigate("journey/$journeyId") },
                                 onAddEvent = { navController.navigate(ADD_EVENT_ROUTE) },
+                                onManageQuickActions = { navController.navigate(QUICK_ACTIONS_ROUTE) },
                             )
                         }
 
@@ -238,6 +241,14 @@ private fun MainNavigation(
                     factory = factory,
                 )
                 AddEventScreen(viewModel = viewModel, onBack = navController::popBackStack)
+            }
+            composable(QUICK_ACTIONS_ROUTE) { entry ->
+                val mainEntry = remember(entry) { navController.getBackStackEntry(MAIN_ROUTE) }
+                val viewModel: TodayViewModel = viewModel(
+                    viewModelStoreOwner = mainEntry,
+                    factory = factory,
+                )
+                QuickActionsScreen(viewModel = viewModel, onBack = navController::popBackStack)
             }
             composable(ADD_PLACE_ROUTE) {
                 val viewModel: PlacesViewModel = viewModel(factory = factory)

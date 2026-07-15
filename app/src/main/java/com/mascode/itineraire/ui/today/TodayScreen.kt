@@ -2,6 +2,8 @@ package com.mascode.itineraire.ui.today
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -59,6 +61,7 @@ fun TodayScreen(
     onOpenPlaces: () -> Unit,
     onOpenJourney: (String) -> Unit,
     onAddEvent: () -> Unit,
+    onManageQuickActions: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -90,6 +93,7 @@ fun TodayScreen(
                 onOpenPlaces = onOpenPlaces,
                 onOpenJourney = onOpenJourney,
                 onAddEvent = onAddEvent,
+                onManageQuickActions = onManageQuickActions,
                 onStartJourney = { showJourneyDialog = true },
                 modifier = Modifier.weight(1f),
             )
@@ -154,6 +158,7 @@ private fun DayNavigationHeader(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DayContent(
     state: TodayUiState,
@@ -161,6 +166,7 @@ private fun DayContent(
     onOpenPlaces: () -> Unit,
     onOpenJourney: (String) -> Unit,
     onAddEvent: () -> Unit,
+    onManageQuickActions: () -> Unit,
     onStartJourney: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -188,10 +194,19 @@ private fun DayContent(
         if (isToday) {
             item {
                 Text("Actions rapides", style = MaterialTheme.typography.titleMedium)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
                     OutlinedButton(onClick = { viewModel.addEvent(DayEventType.WAKE_UP) }) { Text("Réveil") }
                     OutlinedButton(onClick = { viewModel.addEvent(DayEventType.LEAVE_HOME) }) { Text("Sortie maison") }
+                    state.quickActions.forEach { action ->
+                        OutlinedButton(onClick = { viewModel.runQuickAction(action) }) {
+                            Text(action.label)
+                        }
+                    }
                 }
+                TextButton(onClick = onManageQuickActions) { Text("Gérer les actions rapides") }
             }
         }
 

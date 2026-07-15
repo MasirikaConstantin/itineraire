@@ -35,6 +35,7 @@ class AppViewModelFactory(private val container: AppContainer) : ViewModelProvid
             container.dayRepository,
             container.placeRepository,
             container.journeyRepository,
+            container.quickActionRepository,
         ) as T
 
         modelClass.isAssignableFrom(PlacesViewModel::class.java) ->

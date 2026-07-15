@@ -5,9 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.mascode.itineraire.data.local.entity.DayEventEntity
 import com.mascode.itineraire.data.local.entity.JourneyEntity
 import com.mascode.itineraire.data.local.entity.PlaceEntity
+import com.mascode.itineraire.data.local.entity.QuickActionEntity
 import com.mascode.itineraire.data.repository.DayRepository
 import com.mascode.itineraire.data.repository.JourneyRepository
 import com.mascode.itineraire.data.repository.PlaceRepository
+import com.mascode.itineraire.data.repository.QuickActionRepository
 import com.mascode.itineraire.domain.model.DayEventType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +33,7 @@ data class TodayUiState(
     val events: List<DayEventEntity> = emptyList(),
     val journeys: List<JourneyEntity> = emptyList(),
     val places: List<PlaceEntity> = emptyList(),
+    val quickActions: List<QuickActionEntity> = emptyList(),
     val errorMessage: String? = null,
 )
 
@@ -39,6 +42,7 @@ class TodayViewModel(
     private val dayRepository: DayRepository,
     private val placeRepository: PlaceRepository,
     private val journeyRepository: JourneyRepository,
+    private val quickActionRepository: QuickActionRepository,
 ) : ViewModel() {
     private val selectedDate = MutableStateFlow(LocalDate.now())
     private val errorMessage = MutableStateFlow<String?>(null)
@@ -51,8 +55,9 @@ class TodayViewModel(
                         dayRepository.observeEvents(id),
                         journeyRepository.observeForDay(id),
                         placeRepository.places,
+                        quickActionRepository.actions,
                         errorMessage,
-                    ) { events, journeys, places, error ->
+                    ) { events, journeys, places, quickActions, error ->
                         TodayUiState(
                             isLoading = false,
                             selectedDate = date,
@@ -60,6 +65,7 @@ class TodayViewModel(
                             events = events,
                             journeys = journeys,
                             places = places,
+                            quickActions = quickActions,
                             errorMessage = error,
                         )
                     }
@@ -118,6 +124,37 @@ class TodayViewModel(
             runCatching { journeyRepository.start(id, sourceId, destinationId) }
                 .onSuccess(onStarted)
                 .onFailure { errorMessage.value = it.message ?: "Impossible de démarrer le trajet." }
+        }
+    }
+
+    fun runQuickAction(action: QuickActionEntity) {
+        addEvent(
+            type = action.eventType,
+            placeId = action.placeId,
+            notes = action.notes,
+        )
+    }
+
+    fun addQuickAction(
+        label: String,
+        eventType: DayEventType,
+        placeId: String?,
+        notes: String?,
+        onSaved: () -> Unit = {},
+    ) {
+        viewModelScope.launch {
+            runCatching { quickActionRepository.add(label, eventType, placeId, notes) }
+                .onSuccess { onSaved() }
+                .onFailure {
+                    errorMessage.value = "Cette action existe déjà ou n'est pas valide."
+                }
+        }
+    }
+
+    fun deleteQuickAction(action: QuickActionEntity) {
+        viewModelScope.launch {
+            runCatching { quickActionRepository.delete(action) }
+                .onFailure { errorMessage.value = "Impossible de supprimer cette action." }
         }
     }
 
