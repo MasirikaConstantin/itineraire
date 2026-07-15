@@ -40,6 +40,7 @@ Les déplacements peuvent révéler des informations sensibles. Les données son
 - **Journée (`DayLog`)** : conteneur chronologique des activités d'une date.
 - **Lieu (`Place`)** : endroit réutilisable, par exemple Maison, ISC, travail, église ou un arrêt, avec une position géographique facultative.
 - **Événement (`DayEvent`)** : fait ponctuel comme le réveil, la sortie de la maison ou une arrivée.
+- **Action rapide (`QuickAction`)** : raccourci personnalisé qui enregistre immédiatement un type d'événement, avec un lieu et une note facultatifs.
 - **Trajet (`Journey`)** : déplacement complet entre une source et une destination finale.
 - **Tronçon (`JourneyLeg`)** : partie d'un trajet effectuée avec un mode de transport donné.
 - **Observation (`JourneyObservation`)** : information contextuelle comme une attente, un embouteillage, une panne ou la météo.
@@ -54,6 +55,7 @@ erDiagram
     DAY_LOG ||--o{ DAY_EVENT : contient
     DAY_LOG ||--o{ JOURNEY : regroupe
     PLACE o|--o{ DAY_EVENT : localise
+    PLACE o|--o{ QUICK_ACTION : prépare
     PLACE ||--o{ JOURNEY : source
     PLACE ||--o{ JOURNEY : destination
     JOURNEY ||--o{ JOURNEY_LEG : compose
@@ -126,6 +128,7 @@ La version actuelle permet de :
 - modifier le nom, la catégorie ou la position d'un lieu depuis la liste des lieux ;
 - enregistrer rapidement le réveil et la sortie de la maison ;
 - créer un événement Réveil, Sortie de la maison, Arrivée, Activité ou Fin de journée avec une heure, un lieu et une note facultatifs ;
+- créer et supprimer des actions rapides personnalisées, en plus des raccourcis Réveil et Sortie maison fournis par défaut ;
 - démarrer et terminer un trajet entre deux lieux ;
 - décomposer un trajet en tronçons avec lieux, transport, horaires, durée, prix en CDF et notes ;
 - signaler les embouteillages, attentes, pannes, problèmes météo et autres observations ;
@@ -139,6 +142,12 @@ La version actuelle permet de :
 - conserver toutes les informations dans une base Room locale.
 
 La position facultative permet de calculer dans le résumé une distance à vol d'oiseau avec la formule de Haversine. Lorsque tous les tronçons sont localisés, leurs distances sont additionnées ; sinon, le calcul relie directement la source et la destination finales si leurs positions sont disponibles. Cette estimation ne représente pas la longueur réelle du réseau routier. Une position n'est pas nécessaire pour enregistrer ou utiliser un lieu.
+
+## Événements et actions rapides
+
+Un événement est une information enregistrée dans la journée avec une heure précise. Sa création détaillée permet de choisir son type, un lieu et une note facultatifs. Les événements Réveil et Sortie de la maison disposent également de raccourcis fixes sur l'accueil.
+
+L'utilisateur peut ajouter ses propres actions rapides depuis **Accueil → Gérer les actions rapides**. Une action possède un libellé, un type d'événement, un lieu et une note facultatifs. Un appui sur son bouton enregistre immédiatement l'événement à l'heure actuelle. Les actions personnalisées sont conservées dans Room et peuvent être supprimées depuis leur page de gestion.
 
 ## Géolocalisation facultative
 
