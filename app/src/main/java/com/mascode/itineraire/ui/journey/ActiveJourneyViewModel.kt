@@ -60,7 +60,7 @@ data class ActiveJourneyUiState(
         get() = legs.lastOrNull()?.destinationPlaceId == journey?.destinationPlaceId
 
     val canFinishJourney: Boolean
-        get() = activeLeg == null && (legs.isEmpty() || hasReachedFinalDestination)
+        get() = activeLeg == null && plannedLegs.isEmpty() && (legs.isEmpty() || hasReachedFinalDestination)
 }
 
 private fun distanceBetween(start: PlaceEntity?, end: PlaceEntity?): Double? {

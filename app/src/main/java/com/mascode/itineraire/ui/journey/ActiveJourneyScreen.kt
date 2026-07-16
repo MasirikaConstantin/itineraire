@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,19 +20,29 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.AddRoad
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.Payments
+import androidx.compose.material.icons.outlined.Route
+import androidx.compose.material.icons.outlined.Straighten
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -44,6 +55,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -134,6 +147,10 @@ fun ActiveJourneyScreen(
                     )
                 }
 
+                item {
+                    JourneyProgressCard(state)
+                }
+
                 state.errorMessage?.let { message ->
                     item {
                         Card(Modifier.fillMaxWidth()) {
@@ -186,7 +203,8 @@ fun ActiveJourneyScreen(
                             onClick = { showObservationDialog = true },
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text("Ajouter une observation")
+                            Icon(Icons.Outlined.AddRoad, contentDescription = null)
+                            Text("  Ajouter une observation")
                         }
                     }
                 }
@@ -233,6 +251,7 @@ fun ActiveJourneyScreen(
                         }
                         val finishHint = when {
                             state.activeLeg != null -> "Terminez le tronçon actif avant de clôturer le trajet."
+                            state.plannedLegs.isNotEmpty() -> "Effectuez ou retirez les tronçons encore prévus."
                             state.legs.isNotEmpty() && !state.hasReachedFinalDestination ->
                                 "Le dernier tronçon doit atteindre la destination finale."
                             else -> null
@@ -333,19 +352,115 @@ private fun JourneySummaryCard(state: ActiveJourneyUiState, now: Instant) {
     val places = state.places.associateBy(PlaceEntity::id)
     val end = journey.endedAt ?: now
 
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(
-                "${places[journey.sourcePlaceId]?.name.orUnknown()} → ${places[journey.destinationPlaceId]?.name.orUnknown()}",
-                style = MaterialTheme.typography.titleLarge,
-            )
-            Text("Départ : ${formatTime(journey.startedAt)}")
-            Text("Durée totale : ${formatDuration(Duration.between(journey.startedAt, end))}")
-            state.estimatedDistanceMeters?.let { distance ->
-                Text("Distance estimée : ${formatDistance(distance)} (à vol d'oiseau)")
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+    ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Surface(
+                color = statusColor(journey.status).copy(alpha = 0.14f),
+                contentColor = statusColor(journey.status),
+                shape = MaterialTheme.shapes.extraLarge,
+            ) {
+                Text(
+                    statusLabel(journey.status),
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
+                    style = MaterialTheme.typography.labelLarge,
+                )
             }
-            Text("Coût total : ${formatCost(state.totalCost)}", style = MaterialTheme.typography.titleMedium)
-            Text(statusLabel(journey.status), color = statusColor(journey.status))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.Route, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text(
+                        places[journey.sourcePlaceId]?.name.orUnknown(),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        "vers ${places[journey.destinationPlaceId]?.name.orUnknown()}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                JourneyMetric(
+                    icon = Icons.Outlined.AccessTime,
+                    label = "Durée",
+                    value = formatDuration(Duration.between(journey.startedAt, end)),
+                    modifier = Modifier.weight(1f),
+                )
+                JourneyMetric(
+                    icon = Icons.Outlined.Straighten,
+                    label = "Distance",
+                    value = state.estimatedDistanceMeters?.let(::formatDistance) ?: "—",
+                    modifier = Modifier.weight(1f),
+                )
+                JourneyMetric(
+                    icon = Icons.Outlined.Payments,
+                    label = "Coût",
+                    value = formatCost(state.totalCost),
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Text(
+                "Départ à ${formatTime(journey.startedAt)}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun JourneyMetric(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
+    Surface(modifier = modifier, color = MaterialTheme.colorScheme.surfaceContainer, shape = MaterialTheme.shapes.medium) {
+        Column(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(3.dp),
+        ) {
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Text(value, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun JourneyProgressCard(state: ActiveJourneyUiState) {
+    val completed = state.legs.count { it.endedAt != null }
+    val active = if (state.activeLeg != null) 1 else 0
+    val total = completed + active + state.plannedLegs.size
+    if (total == 0) return
+    val progress = (completed + active * 0.5f) / total.toFloat()
+
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text("Progression du trajet", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                Text("$completed / $total", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+            }
+            LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
+            Text(
+                when {
+                    state.activeLeg != null -> "Un tronçon est actuellement en cours."
+                    state.plannedLegs.size == 1 -> "1 tronçon reste à effectuer."
+                    state.plannedLegs.isNotEmpty() -> "${state.plannedLegs.size} tronçons restent à effectuer."
+                    else -> "Tous les tronçons sont terminés."
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -363,12 +478,22 @@ private fun ActiveLegCard(
     now: Instant,
     onFinish: () -> Unit,
 ) {
-    Card(Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+    ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Tronçon en cours", style = MaterialTheme.typography.titleLarge)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                CircularProgressIndicator(modifier = Modifier.width(24.dp).height(24.dp), strokeWidth = 3.dp)
+                Spacer(Modifier.width(10.dp))
+                Text("Tronçon en cours", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            }
             Text(legRoute(leg, places), style = MaterialTheme.typography.titleMedium)
             Text(transportLabel(leg.transportMode))
-            Text("Depuis ${formatTime(leg.startedAt)} · ${formatDuration(Duration.between(leg.startedAt, now))}")
+            Text(
+                "Depuis ${formatTime(leg.startedAt)} · ${formatDuration(Duration.between(leg.startedAt, now))}",
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
             Button(onClick = onFinish, modifier = Modifier.fillMaxWidth()) { Text("Terminer ce tronçon") }
         }
     }
@@ -377,9 +502,13 @@ private fun ActiveLegCard(
 @Composable
 private fun LegCard(leg: JourneyLegEntity, places: List<PlaceEntity>, now: Instant) {
     val end = leg.endedAt ?: now
-    Card(Modifier.fillMaxWidth()) {
+    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("${leg.position + 1}. ${legRoute(leg, places)}", style = MaterialTheme.typography.titleMedium)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
+                Spacer(Modifier.width(8.dp))
+                Text("${leg.position + 1}. ${legRoute(leg, places)}", style = MaterialTheme.typography.titleMedium)
+            }
             Text("${transportLabel(leg.transportMode)} · ${formatDuration(Duration.between(leg.startedAt, end))}")
             Text("${formatTime(leg.startedAt)} → ${leg.endedAt?.let(::formatTime) ?: "en cours"}")
             if (leg.endedAt != null) Text(formatCost(leg.cost), style = MaterialTheme.typography.titleSmall)
@@ -397,13 +526,22 @@ private fun PlannedLegCard(
     onDelete: () -> Unit,
 ) {
     val placesById = places.associateBy(PlaceEntity::id)
-    Card(Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = if (canStart) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainer,
+        ),
+    ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(
-                "${leg.position + 1}. ${placesById[leg.sourcePlaceId]?.name.orUnknown()} → " +
-                    placesById[leg.destinationPlaceId]?.name.orUnknown(),
-                style = MaterialTheme.typography.titleMedium,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.Flag, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "${leg.position + 1}. ${placesById[leg.sourcePlaceId]?.name.orUnknown()} → " +
+                        placesById[leg.destinationPlaceId]?.name.orUnknown(),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
             Text("${transportLabel(leg.transportMode)} · Pas encore commencé")
             if (canStart) {
                 Button(onClick = onStart, modifier = Modifier.fillMaxWidth()) {
