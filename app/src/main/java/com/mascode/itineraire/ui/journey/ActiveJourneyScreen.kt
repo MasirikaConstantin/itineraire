@@ -201,15 +201,15 @@ fun ActiveJourneyScreen(
                         Spacer(Modifier.height(4.dp))
                         Button(
                             onClick = { showFinishConfirmation = true },
-                            enabled = state.activeLeg == null && state.hasReachedFinalDestination,
+                            enabled = state.canFinishJourney,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text("Terminer le trajet")
                         }
                         val finishHint = when {
                             state.activeLeg != null -> "Terminez le tronçon actif avant de clôturer le trajet."
-                            state.legs.isEmpty() -> "Ajoutez au moins un tronçon pour terminer le trajet."
-                            !state.hasReachedFinalDestination -> "Le dernier tronçon doit atteindre la destination finale."
+                            state.legs.isNotEmpty() && !state.hasReachedFinalDestination ->
+                                "Le dernier tronçon doit atteindre la destination finale."
                             else -> null
                         }
                         finishHint?.let {
@@ -273,7 +273,11 @@ fun ActiveJourneyScreen(
     if (showFinishConfirmation) {
         ConfirmationDialog(
             title = "Terminer le trajet ?",
-            message = "La durée et le coût total seront conservés dans l'historique.",
+            message = if (state.legs.isEmpty()) {
+                "Ce trajet sera enregistré sans tronçon. Sa durée et sa distance estimée resteront visibles dans l'historique."
+            } else {
+                "La durée et le coût total seront conservés dans l'historique."
+            },
             confirmLabel = "Terminer",
             onDismiss = { showFinishConfirmation = false },
             onConfirm = {
