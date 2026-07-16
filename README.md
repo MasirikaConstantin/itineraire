@@ -132,6 +132,7 @@ La version actuelle `1.2.0` permet de :
 - préparer un trajet dans un écran dédié et défilable, puis le démarrer entre deux lieux ;
 - inverser rapidement le lieu de départ et la destination avant le démarrage ;
 - terminer un trajet en cours ;
+- terminer un trajet simple sans créer de tronçon ;
 - décomposer un trajet en tronçons avec lieux, transport, horaires, durée, prix en CDF et notes ;
 - signaler les embouteillages, attentes, pannes, problèmes météo et autres observations ;
 - consulter le résumé détaillé et le coût total d'un trajet depuis l'historique ;
@@ -152,6 +153,8 @@ La position facultative permet de calculer dans le résumé une distance à vol 
 Depuis l'accueil, **Commencer un trajet** ouvre une page complète et non une fenêtre modale. Le lieu de départ et la destination finale restent visibles en haut du formulaire, tandis qu'une seule liste de lieux défilante sert à modifier l'élément sélectionné. Cette organisation reste utilisable lorsque la base contient beaucoup de lieux et laisse de la place pour enrichir ultérieurement la préparation du trajet.
 
 Le bouton de démarrage reste accessible en bas de l'écran. Il crée le trajet dans la journée courante avec les mêmes dépôts Room que le reste de l'application, puis ouvre son suivi détaillé. Revenir en arrière ne crée rien. Cette évolution d'interface ne modifie ni le schéma de la base locale ni les trajets, lieux et événements déjà enregistrés.
+
+Les tronçons sont facultatifs. Un déplacement simple peut être terminé directement et conserver sa source, sa destination, sa durée totale ainsi que sa distance estimée lorsque les lieux sont géolocalisés. Lorsqu'au moins un tronçon est ajouté, le dernier doit toujours atteindre la destination finale avant la clôture du trajet.
 
 ## Événements et actions rapides
 
