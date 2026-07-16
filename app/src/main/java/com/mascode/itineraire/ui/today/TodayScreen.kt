@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.NavigateBefore
 import androidx.compose.material.icons.automirrored.outlined.NavigateNext
 import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -28,7 +27,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -43,7 +41,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.mascode.itineraire.data.local.entity.PlaceEntity
 import com.mascode.itineraire.domain.model.DayEventType
 import com.mascode.itineraire.domain.model.JourneyStatus
 import java.time.Instant
@@ -62,10 +59,10 @@ fun TodayScreen(
     onOpenJourney: (String) -> Unit,
     onAddEvent: () -> Unit,
     onManageQuickActions: () -> Unit,
+    onStartJourney: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    var showJourneyDialog by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     val today = LocalDate.now()
 
@@ -94,7 +91,7 @@ fun TodayScreen(
                 onOpenJourney = onOpenJourney,
                 onAddEvent = onAddEvent,
                 onManageQuickActions = onManageQuickActions,
-                onStartJourney = { showJourneyDialog = true },
+                onStartJourney = onStartJourney,
                 modifier = Modifier.weight(1f),
             )
         }
@@ -107,17 +104,6 @@ fun TodayScreen(
             onDateSelected = { date ->
                 viewModel.selectDate(date)
                 showDatePicker = false
-            },
-        )
-    }
-
-    if (showJourneyDialog) {
-        NewJourneyDialog(
-            places = state.places,
-            onDismiss = { showJourneyDialog = false },
-            onConfirm = { source, destination ->
-                viewModel.startJourney(source, destination, onOpenJourney)
-                showJourneyDialog = false
             },
         )
     }
@@ -316,48 +302,6 @@ private fun DayPickerDialog(
             title = { Text("Choisir une journée", modifier = Modifier.padding(start = 24.dp, top = 16.dp)) },
         )
     }
-}
-
-@Composable
-private fun NewJourneyDialog(
-    places: List<PlaceEntity>,
-    onDismiss: () -> Unit,
-    onConfirm: (String, String) -> Unit,
-) {
-    var sourceId by remember { mutableStateOf(places.first().id) }
-    var destinationId by remember { mutableStateOf(places.first { it.id != sourceId }.id) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Nouveau trajet") },
-        text = {
-            Column {
-                Text("Source", style = MaterialTheme.typography.labelLarge)
-                places.forEach { place ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(
-                            selected = sourceId == place.id,
-                            onClick = {
-                                sourceId = place.id
-                                if (destinationId == place.id) destinationId = places.first { it.id != place.id }.id
-                            },
-                        )
-                        Text(place.name)
-                    }
-                }
-                Spacer(Modifier.height(8.dp))
-                Text("Destination", style = MaterialTheme.typography.labelLarge)
-                places.filter { it.id != sourceId }.forEach { place ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(selected = destinationId == place.id, onClick = { destinationId = place.id })
-                        Text(place.name)
-                    }
-                }
-            }
-        },
-        confirmButton = { TextButton(onClick = { onConfirm(sourceId, destinationId) }) { Text("Démarrer") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Annuler") } },
-    )
 }
 
 private fun formatTime(instant: java.time.Instant): String =

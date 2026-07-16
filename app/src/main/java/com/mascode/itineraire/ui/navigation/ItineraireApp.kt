@@ -42,6 +42,7 @@ import com.mascode.itineraire.ui.history.HistoryScreen
 import com.mascode.itineraire.ui.history.HistoryViewModel
 import com.mascode.itineraire.ui.journey.ActiveJourneyScreen
 import com.mascode.itineraire.ui.journey.ActiveJourneyViewModel
+import com.mascode.itineraire.ui.journey.StartJourneyScreen
 import com.mascode.itineraire.ui.places.PlaceEditorScreen
 import com.mascode.itineraire.ui.places.PlacesScreen
 import com.mascode.itineraire.ui.places.PlacesViewModel
@@ -65,6 +66,7 @@ private enum class Destination(val label: String, val icon: ImageVector) {
 
 private const val MAIN_ROUTE = "main"
 private const val ACTIVE_JOURNEY_ROUTE = "journey/{journeyId}"
+private const val START_JOURNEY_ROUTE = "journeys/start"
 private const val ADD_PLACE_ROUTE = "places/add"
 private const val EDIT_PLACE_ROUTE = "places/edit/{placeId}"
 private const val ADD_EVENT_ROUTE = "events/add"
@@ -188,6 +190,7 @@ private fun MainNavigation(
                                 onOpenJourney = { journeyId -> navController.navigate("journey/$journeyId") },
                                 onAddEvent = { navController.navigate(ADD_EVENT_ROUTE) },
                                 onManageQuickActions = { navController.navigate(QUICK_ACTIONS_ROUTE) },
+                                onStartJourney = { navController.navigate(START_JOURNEY_ROUTE) },
                             )
                         }
 
@@ -233,6 +236,28 @@ private fun MainNavigation(
                     factory = factory.activeJourneyFactory(journeyId),
                 )
                 ActiveJourneyScreen(viewModel = viewModel, onBack = navController::popBackStack)
+            }
+            composable(START_JOURNEY_ROUTE) { entry ->
+                val mainEntry = remember(entry) { navController.getBackStackEntry(MAIN_ROUTE) }
+                val viewModel: TodayViewModel = viewModel(
+                    viewModelStoreOwner = mainEntry,
+                    factory = factory,
+                )
+                StartJourneyScreen(
+                    viewModel = viewModel,
+                    onBack = navController::popBackStack,
+                    onStarted = { journeyId ->
+                        navController.navigate("journey/$journeyId") {
+                            popUpTo(START_JOURNEY_ROUTE) { inclusive = true }
+                        }
+                    },
+                    onOpenPlaces = {
+                        navController.popBackStack()
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(Destination.PLACES.ordinal)
+                        }
+                    },
+                )
             }
             composable(ADD_EVENT_ROUTE) { entry ->
                 val mainEntry = remember(entry) { navController.getBackStackEntry(MAIN_ROUTE) }
