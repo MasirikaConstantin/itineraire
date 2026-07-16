@@ -118,7 +118,7 @@ L'injection des dépendances est volontairement manuelle pour garder le projet s
 
 ## État actuel
 
-La version actuelle `1.2.0` permet de :
+La version actuelle `1.3.0` permet de :
 
 - utiliser l'application sans créer de compte ni activer de protection ;
 - créer, modifier ou supprimer un profil local facultatif depuis une page dédiée ;
@@ -130,6 +130,7 @@ La version actuelle `1.2.0` permet de :
 - créer un événement Réveil, Sortie de la maison, Arrivée, Activité ou Fin de journée avec une heure, un lieu et une note facultatifs ;
 - créer et supprimer des actions rapides personnalisées, en plus des raccourcis Réveil et Sortie maison fournis par défaut ;
 - préparer un trajet dans un écran dédié et défilable, puis le démarrer entre deux lieux ;
+- préparer facultativement les tronçons et leur transport avant le démarrage du trajet ;
 - inverser rapidement le lieu de départ et la destination avant le démarrage ;
 - terminer un trajet en cours ;
 - terminer un trajet simple sans créer de tronçon ;
@@ -156,6 +157,8 @@ Le bouton de démarrage reste accessible en bas de l'écran. Il crée le trajet 
 
 Les tronçons sont facultatifs. Un déplacement simple peut être terminé directement et conserver sa source, sa destination, sa durée totale ainsi que sa distance estimée lorsque les lieux sont géolocalisés. Lorsqu'au moins un tronçon est ajouté, le dernier doit toujours atteindre la destination finale avant la clôture du trajet.
 
+Pendant la préparation, l'utilisateur peut définir une suite continue de tronçons avec leurs lieux et modes de transport. Ces étapes sont enregistrées comme des tronçons prévus, sans fabriquer d'horaires. Dans le trajet en cours, **Commencer ce tronçon** transforme l'étape suivante en tronçon réel et enregistre seulement à cet instant son heure de départ. Retirer une étape prévue retire également les suivantes afin de ne pas conserver un itinéraire discontinu.
+
 ## Événements et actions rapides
 
 Un événement est une information enregistrée dans la journée avec une heure précise. Sa création détaillée permet de choisir son type, un lieu et une note facultatifs. Les événements Réveil et Sortie de la maison disposent également de raccourcis fixes sur l'accueil.
@@ -164,7 +167,7 @@ L'utilisateur peut ajouter ses propres actions rapides depuis **Accueil → Gér
 
 ## Sauvegarde et restauration
 
-La page **Paramètres → Sauvegarde et restauration** permet de créer un fichier JSON versionné avec les neuf tables Room : profil local, sécurité, lieux, journées, événements, trajets, tronçons, observations et actions rapides. Le sélecteur de documents Android laisse l'utilisateur enregistrer ce fichier dans le stockage local, sur une carte mémoire ou auprès d'un fournisseur cloud installé, sans permission générale d'accès aux fichiers.
+La page **Paramètres → Sauvegarde et restauration** permet de créer un fichier JSON versionné avec toutes les tables Room : profil local, sécurité, lieux, journées, événements, trajets, tronçons prévus ou effectués, observations et actions rapides. Le sélecteur de documents Android laisse l'utilisateur enregistrer ce fichier dans le stockage local, sur une carte mémoire ou auprès d'un fournisseur cloud installé, sans permission générale d'accès aux fichiers.
 
 Avant une restauration, l'application contrôle l'origine, la version, les tables et les colonnes du fichier. Les données ne sont remplacées qu'après une confirmation explicite et dans une transaction Room unique : une erreur annule toute l'opération et préserve la base existante. Le format JSON manuel n'est pas encore chiffré et doit être conservé dans un emplacement sûr.
 

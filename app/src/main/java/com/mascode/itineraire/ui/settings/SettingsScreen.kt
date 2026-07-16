@@ -118,7 +118,7 @@ fun SettingsScreen(
                 SettingsRow(
                     icon = Icons.Outlined.Info,
                     title = "Itinéraire",
-                    description = "Version 1.2.0",
+                    description = "Version 1.3.0",
                 )
                 HorizontalDivider(Modifier.padding(horizontal = 16.dp))
                 SettingsRow(
