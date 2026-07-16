@@ -1,6 +1,5 @@
 package com.mascode.itineraire.ui.journey
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,15 +14,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.SwapVert
 import androidx.compose.material3.Button
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -132,13 +132,14 @@ private fun JourneyForm(
 ) {
     var sourceId by rememberSaveable { mutableStateOf(places.first().id) }
     var destinationId by rememberSaveable { mutableStateOf(places.first { it.id != sourceId }.id) }
-    var selection by rememberSaveable { mutableStateOf(EndpointSelection.SOURCE) }
+    var selection by rememberSaveable { mutableStateOf<EndpointSelection?>(null) }
     val source = places.firstOrNull { it.id == sourceId } ?: places.first()
     val destination = places.firstOrNull { it.id == destinationId }
         ?: places.first { it.id != source.id }
     val availablePlaces = when (selection) {
         EndpointSelection.SOURCE -> places.filter { it.id != destination.id }
         EndpointSelection.DESTINATION -> places.filter { it.id != source.id }
+        null -> emptyList()
     }
 
     Column(modifier.fillMaxSize()) {
@@ -149,7 +150,7 @@ private fun JourneyForm(
         ) {
             item {
                 Text(
-                    "Choisissez le point de départ et la destination finale. Le départ sera enregistré à l'heure actuelle.",
+                    "Vérifiez votre itinéraire avant de démarrer. L'heure de départ sera enregistrée automatiquement.",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -157,7 +158,8 @@ private fun JourneyForm(
                 EndpointCard(
                     label = "Départ",
                     placeName = source.name,
-                    selected = selection == EndpointSelection.SOURCE,
+                    icon = Icons.Outlined.LocationOn,
+                    isBeingEdited = selection == EndpointSelection.SOURCE,
                     onClick = { selection = EndpointSelection.SOURCE },
                 )
             }
@@ -171,6 +173,7 @@ private fun JourneyForm(
                             val previousSource = sourceId
                             sourceId = destinationId
                             destinationId = previousSource
+                            selection = null
                         },
                     ) {
                         Icon(Icons.Outlined.SwapVert, contentDescription = "Inverser le trajet")
@@ -181,40 +184,40 @@ private fun JourneyForm(
                 EndpointCard(
                     label = "Destination finale",
                     placeName = destination.name,
-                    selected = selection == EndpointSelection.DESTINATION,
+                    icon = Icons.Outlined.Flag,
+                    isBeingEdited = selection == EndpointSelection.DESTINATION,
                     onClick = { selection = EndpointSelection.DESTINATION },
                 )
             }
-            item {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    if (selection == EndpointSelection.SOURCE) {
-                        "Choisir le lieu de départ"
-                    } else {
-                        "Choisir la destination finale"
-                    },
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-            items(availablePlaces, key = { it.id }) { place ->
-                PlaceChoice(
-                    place = place,
-                    selected = when (selection) {
-                        EndpointSelection.SOURCE -> place.id == source.id
-                        EndpointSelection.DESTINATION -> place.id == destination.id
-                    },
-                    onClick = {
-                        onClearError()
-                        when (selection) {
-                            EndpointSelection.SOURCE -> {
-                                sourceId = place.id
-                                selection = EndpointSelection.DESTINATION
+            selection?.let { endpoint ->
+                item {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        if (endpoint == EndpointSelection.SOURCE) {
+                            "Nouveau lieu de départ"
+                        } else {
+                            "Nouvelle destination"
+                        },
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
+                items(availablePlaces, key = { it.id }) { place ->
+                    PlaceChoice(
+                        place = place,
+                        selected = when (endpoint) {
+                            EndpointSelection.SOURCE -> place.id == source.id
+                            EndpointSelection.DESTINATION -> place.id == destination.id
+                        },
+                        onClick = {
+                            onClearError()
+                            when (endpoint) {
+                                EndpointSelection.SOURCE -> sourceId = place.id
+                                EndpointSelection.DESTINATION -> destinationId = place.id
                             }
-
-                            EndpointSelection.DESTINATION -> destinationId = place.id
-                        }
-                    },
-                )
+                            selection = null
+                        },
+                    )
+                }
             }
             errorMessage?.let { message ->
                 item {
@@ -238,31 +241,29 @@ private fun JourneyForm(
 private fun EndpointCard(
     label: String,
     placeName: String,
-    selected: Boolean,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    isBeingEdited: Boolean,
     onClick: () -> Unit,
 ) {
     OutlinedCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.outlinedCardColors(
-            containerColor = if (selected) {
-                MaterialTheme.colorScheme.secondaryContainer
-            } else {
-                MaterialTheme.colorScheme.surface
-            },
-        ),
-        border = BorderStroke(
-            width = if (selected) 2.dp else 1.dp,
-            color = if (selected) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.outlineVariant
-            },
-        ),
     ) {
-        Column(Modifier.padding(16.dp)) {
-            Text(label, style = MaterialTheme.typography.labelLarge)
-            Text(placeName, style = MaterialTheme.typography.titleLarge)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Column(Modifier.weight(1f)) {
+                Text(label, style = MaterialTheme.typography.labelMedium)
+                Text(placeName, style = MaterialTheme.typography.titleMedium)
+            }
+            Icon(
+                Icons.Outlined.Edit,
+                contentDescription = if (isBeingEdited) "Sélection en cours" else "Modifier",
+                tint = if (isBeingEdited) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -273,12 +274,16 @@ private fun PlaceChoice(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    OutlinedButton(
+    OutlinedCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
     ) {
-        RadioButton(selected = selected, onClick = null)
-        Text(place.name, modifier = Modifier.weight(1f))
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            RadioButton(selected = selected, onClick = null)
+            Text(place.name, modifier = Modifier.weight(1f))
+        }
     }
 }
