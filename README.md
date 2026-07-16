@@ -51,27 +51,17 @@ Les déplacements peuvent révéler des informations sensibles. Les données son
 ## Modèle de données
 
 ```mermaid
-erDiagram
-    DAY_LOG ||--o{ DAY_EVENT : contient
-    DAY_LOG ||--o{ JOURNEY : regroupe
-    PLACE o|--o{ DAY_EVENT : localise
-    PLACE o|--o{ QUICK_ACTION : prépare
-    PLACE ||--o{ JOURNEY : source
-    PLACE ||--o{ JOURNEY : destination
-    JOURNEY ||--o{ JOURNEY_LEG : compose
-    JOURNEY ||--o{ JOURNEY_OBSERVATION : documente
-    JOURNEY_LEG ||--o{ JOURNEY_OBSERVATION : documente
-    PLACE o|--o{ JOURNEY_LEG : relie
-    LOCAL_ACCOUNT {
-        int id PK
-        string displayName
-        instant createdAt
-    }
-    APP_SECURITY {
-        int id PK
-        boolean biometricLockEnabled
-        instant updatedAt
-    }
+flowchart LR
+    DAY_LOG["DAY_LOG<br/>Journée"] -->|contient| DAY_EVENT["DAY_EVENT<br/>Événements"]
+    DAY_LOG -->|regroupe| JOURNEY["JOURNEY<br/>Trajet"]
+    PLACE["PLACE<br/>Lieu"] -->|localise| DAY_EVENT
+    PLACE -->|prépare| QUICK_ACTION["QUICK_ACTION<br/>Action rapide"]
+    PLACE -->|source ou destination| JOURNEY
+    JOURNEY -->|compose| JOURNEY_LEG["JOURNEY_LEG<br/>Tronçons"]
+    JOURNEY -->|documente| JOURNEY_OBSERVATION["JOURNEY_OBSERVATION<br/>Observations"]
+    JOURNEY_LEG -->|documente| JOURNEY_OBSERVATION
+    LOCAL_ACCOUNT["LOCAL_ACCOUNT<br/>Profil local"]
+    APP_SECURITY["APP_SECURITY<br/>Sécurité"]
 ```
 
 Les coûts sont enregistrés sous forme d'entiers (`Long`) pour éviter les erreurs d'arrondi. La devise initiale est le franc congolais (`CDF`). Les identifiants sont des UUID afin de préparer l'export et une éventuelle synchronisation.
