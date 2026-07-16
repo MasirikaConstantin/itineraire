@@ -118,12 +118,13 @@ L'injection des dépendances est volontairement manuelle pour garder le projet s
 
 ## État actuel
 
-La version actuelle `1.8.1` permet de :
+La version actuelle `1.8.2` permet de :
 
 - utiliser l'application sans créer de compte ni activer de protection ;
 - créer, modifier ou supprimer un profil local facultatif depuis une page dédiée ;
 - activer facultativement la protection par empreinte, visage compatible ou verrouillage du téléphone ;
 - créer et consulter des lieux classés par catégories (maison, études, travail, transport, santé, commerce et autres) depuis une page dédiée ;
+- commencer automatiquement les noms et les phrases par une majuscule dans les champs textuels compatibles ;
 - rechercher les lieux enregistrés et repérer immédiatement leur catégorie et la présence d'une position ;
 - associer facultativement un lieu à la position actuelle du téléphone, lors de sa création ou plus tard ;
 - modifier le nom, la catégorie ou la position d'un lieu depuis la liste des lieux ;
