@@ -65,6 +65,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -767,6 +768,7 @@ private fun FinishLegDialog(onDismiss: () -> Unit, onConfirm: (Long, String?) ->
                     value = notes,
                     onValueChange = { notes = it },
                     label = { Text("Note facultative") },
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 )
             }
         },
@@ -832,6 +834,7 @@ private fun ObservationDialog(onDismiss: () -> Unit, onConfirm: (ObservationType
                     value = notes,
                     onValueChange = { notes = it },
                     label = { Text("Détails facultatifs") },
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 )
             }
         },

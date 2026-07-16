@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.CheckCircle
@@ -62,6 +63,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mascode.itineraire.domain.model.PlaceCategory
@@ -193,6 +195,7 @@ fun PlaceEditorScreen(
                             placeholder = { Text("Ex. Maison, ISC, Rond-point Ngaba") },
                             leadingIcon = { Icon(Icons.Outlined.Place, contentDescription = null) },
                             modifier = Modifier.fillMaxWidth().focusRequester(nameFocusRequester),
+                            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
                             singleLine = true,
                         )
                     }

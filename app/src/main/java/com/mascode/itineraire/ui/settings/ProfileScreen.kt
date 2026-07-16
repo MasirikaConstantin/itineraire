@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -35,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.mascode.itineraire.data.local.entity.LocalAccountEntity
 
@@ -107,6 +109,7 @@ fun ProfileScreen(
                             onClearMessage()
                         },
                         modifier = Modifier.fillMaxWidth().focusRequester(nameFocusRequester),
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
                         label = { Text("Votre nom") },
                         singleLine = true,
                     )
