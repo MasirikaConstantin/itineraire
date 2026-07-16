@@ -58,12 +58,18 @@ class BackupRepository(
         require(root.optString("format") == BACKUP_FORMAT) {
             "Ce fichier ne provient pas de l'application Itinéraire."
         }
-        require(root.optInt("version", -1) == BACKUP_VERSION) {
+        val backupVersion = root.optInt("version", -1)
+        require(backupVersion in SUPPORTED_BACKUP_VERSIONS) {
             "Cette version de sauvegarde n'est pas prise en charge."
         }
         val data = root.optJSONObject("data") ?: error("La sauvegarde ne contient aucune donnée.")
         val rowsByTable = TABLES.associateWith { table ->
-            data.optJSONArray(table) ?: error("La table $table manque dans la sauvegarde.")
+            data.optJSONArray(table)
+                ?: if (backupVersion == 1 && table == "planned_journey_legs") {
+                    JSONArray()
+                } else {
+                    error("La table $table manque dans la sauvegarde.")
+                }
         }
         validateColumns(rowsByTable)
 
@@ -132,7 +138,8 @@ class BackupRepository(
 
     private companion object {
         const val BACKUP_FORMAT = "com.mascode.itineraire.backup"
-        const val BACKUP_VERSION = 1
+        const val BACKUP_VERSION = 2
+        val SUPPORTED_BACKUP_VERSIONS = 1..BACKUP_VERSION
 
         val TABLES = listOf(
             "day_logs",
@@ -141,6 +148,7 @@ class BackupRepository(
             "app_security",
             "day_events",
             "journeys",
+            "planned_journey_legs",
             "journey_legs",
             "journey_observations",
             "quick_actions",
