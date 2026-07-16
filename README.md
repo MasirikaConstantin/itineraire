@@ -118,7 +118,7 @@ L'injection des dépendances est volontairement manuelle pour garder le projet s
 
 ## État actuel
 
-La version actuelle `1.10.0` permet de :
+La version actuelle `1.11.0` permet de :
 
 - utiliser l'application sans créer de compte ni activer de protection ;
 - créer, modifier ou supprimer un profil local facultatif depuis une page dédiée ;
@@ -144,6 +144,7 @@ La version actuelle `1.10.0` permet de :
 - consulter le résumé détaillé et le coût total d'un trajet depuis l'historique ;
 - consulter le bilan d'un trajet terminé avec durée, distance, dépense et répartition par transport ;
 - parcourir une chronologie unifiée du départ, des tronçons, des observations et de l'arrivée ;
+- consulter des statistiques locales sur les dépenses, le temps, les transports et les destinations ;
 - parcourir un historique regroupé par journée, filtrer les trajets par état et consulter une synthèse globale ;
 - modifier ou supprimer un trajet terminé, ses tronçons, les événements et les actions rapides personnalisées ;
 - demander une confirmation explicite avant chaque suppression destructive ;
@@ -212,6 +213,12 @@ Depuis le résumé d'un trajet terminé ou annulé, chaque tronçon terminé peu
 Le résumé terminé présente un bilan avec la durée totale, la distance Haversine disponible, la dépense totale et le nombre de tronçons. La répartition par transport regroupe les tronçons de même mode et affiche pour chacun leur nombre, leur durée cumulée, leur coût et leur distance calculable. Si certains lieux ne sont pas localisés, l'interface distingue une distance directe entre les extrémités du trajet d'une distance totale calculée sur tous les tronçons.
 
 La chronologie complète fusionne dans l'ordre réel le départ du trajet, le début et la fin de chaque tronçon, les observations et l'arrivée finale ou l'annulation. Lorsque la fin d'un tronçon et le début du suivant partagent la même heure, la fin apparaît d'abord. Les fins de tronçon donnent accès à leur modification sans quitter le résumé général.
+
+## Statistiques locales
+
+L'Historique donne accès à un écran **Statistiques locales** calculé exclusivement à partir de Room, sans connexion réseau. Les cartes de dépenses affichent simultanément le total d'aujourd'hui, de la semaine courante commençant le lundi et du mois courant. Les montants sont attribués à la date locale de départ du trajet afin qu'un même déplacement reste dans une seule période.
+
+Le filtre **Aujourd'hui**, **Cette semaine**, **Ce mois** ou **Tout** recalcule le nombre de trajets clôturés, le temps total en déplacement, les dépenses, les transports les plus utilisés et les destinations fréquentes. Les transports sont classés par nombre de tronçons puis par durée ; chaque ligne affiche aussi la durée cumulée et la dépense. Les destinations sont classées par nombre d'arrivées. Les trajets encore actifs sont exclus des statistiques jusqu'à leur clôture.
 
 La suppression d'un tronçon conserve le trajet et ses autres étapes. La suppression d'un trajet est définitive et entraîne, grâce aux relations Room, la suppression de ses tronçons, étapes prévues et observations. Une confirmation décrit cette conséquence avant l'opération. Retirer un tronçon encore prévu demande également confirmation et retire les étapes suivantes, conformément à la continuité du parcours.
 
