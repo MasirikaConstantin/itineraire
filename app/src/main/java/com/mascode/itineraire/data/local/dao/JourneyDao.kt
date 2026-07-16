@@ -3,9 +3,11 @@ package com.mascode.itineraire.data.local.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import com.mascode.itineraire.data.local.entity.JourneyEntity
 import com.mascode.itineraire.data.local.entity.JourneyLegEntity
 import com.mascode.itineraire.data.local.entity.JourneyObservationEntity
+import com.mascode.itineraire.data.local.entity.PlannedJourneyLegEntity
 import com.mascode.itineraire.domain.model.JourneyStatus
 import kotlinx.coroutines.flow.Flow
 import java.time.Instant
@@ -23,6 +25,42 @@ interface JourneyDao {
 
     @Insert
     suspend fun insert(journey: JourneyEntity)
+
+    @Insert
+    suspend fun insertPlannedLegs(legs: List<PlannedJourneyLegEntity>)
+
+    @Query("SELECT * FROM planned_journey_legs WHERE journeyId = :journeyId ORDER BY position")
+    fun observePlannedLegs(journeyId: String): Flow<List<PlannedJourneyLegEntity>>
+
+    @Query("SELECT * FROM planned_journey_legs WHERE id = :plannedLegId LIMIT 1")
+    suspend fun findPlannedLeg(plannedLegId: String): PlannedJourneyLegEntity?
+
+    @Query("SELECT * FROM planned_journey_legs WHERE journeyId = :journeyId ORDER BY position LIMIT 1")
+    suspend fun findNextPlannedLeg(journeyId: String): PlannedJourneyLegEntity?
+
+    @Query("DELETE FROM planned_journey_legs WHERE id = :plannedLegId")
+    suspend fun deletePlannedLeg(plannedLegId: String): Int
+
+    @Query("DELETE FROM planned_journey_legs WHERE journeyId = :journeyId AND position >= :position")
+    suspend fun deletePlannedLegsFrom(journeyId: String, position: Int): Int
+
+    @Transaction
+    suspend fun insertJourneyWithPlan(
+        journey: JourneyEntity,
+        plannedLegs: List<PlannedJourneyLegEntity>,
+    ) {
+        insert(journey)
+        if (plannedLegs.isNotEmpty()) insertPlannedLegs(plannedLegs)
+    }
+
+    @Transaction
+    suspend fun convertPlannedLegToActive(
+        plannedLegId: String,
+        leg: JourneyLegEntity,
+    ): Boolean {
+        insertLeg(leg)
+        return deletePlannedLeg(plannedLegId) > 0
+    }
 
     @Query(
         """UPDATE journeys

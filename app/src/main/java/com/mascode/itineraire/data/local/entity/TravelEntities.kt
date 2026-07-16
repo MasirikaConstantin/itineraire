@@ -152,6 +152,44 @@ data class JourneyLegEntity(
 )
 
 @Entity(
+    tableName = "planned_journey_legs",
+    foreignKeys = [
+        ForeignKey(
+            entity = JourneyEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["journeyId"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+        ForeignKey(
+            entity = PlaceEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["sourcePlaceId"],
+            onDelete = ForeignKey.RESTRICT,
+        ),
+        ForeignKey(
+            entity = PlaceEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["destinationPlaceId"],
+            onDelete = ForeignKey.RESTRICT,
+        ),
+    ],
+    indices = [
+        Index(value = ["journeyId", "position"], unique = true),
+        Index("sourcePlaceId"),
+        Index("destinationPlaceId"),
+    ],
+)
+data class PlannedJourneyLegEntity(
+    @PrimaryKey val id: String = UUID.randomUUID().toString(),
+    val journeyId: String,
+    val position: Int,
+    val sourcePlaceId: String,
+    val destinationPlaceId: String,
+    val transportMode: TransportMode,
+    val createdAt: Instant = Instant.now(),
+)
+
+@Entity(
     tableName = "journey_observations",
     foreignKeys = [
         ForeignKey(

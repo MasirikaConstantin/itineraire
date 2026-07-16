@@ -61,4 +61,38 @@ object DatabaseMigrations {
             )
         }
     }
+
+    val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `planned_journey_legs` (
+                    `id` TEXT NOT NULL,
+                    `journeyId` TEXT NOT NULL,
+                    `position` INTEGER NOT NULL,
+                    `sourcePlaceId` TEXT NOT NULL,
+                    `destinationPlaceId` TEXT NOT NULL,
+                    `transportMode` TEXT NOT NULL,
+                    `createdAt` TEXT NOT NULL,
+                    PRIMARY KEY(`id`),
+                    FOREIGN KEY(`journeyId`) REFERENCES `journeys`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE,
+                    FOREIGN KEY(`sourcePlaceId`) REFERENCES `places`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT,
+                    FOREIGN KEY(`destinationPlaceId`) REFERENCES `places`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT
+                )
+                """.trimIndent(),
+            )
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS `index_planned_journey_legs_journeyId_position` " +
+                    "ON `planned_journey_legs` (`journeyId`, `position`)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_planned_journey_legs_sourcePlaceId` " +
+                    "ON `planned_journey_legs` (`sourcePlaceId`)",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_planned_journey_legs_destinationPlaceId` " +
+                    "ON `planned_journey_legs` (`destinationPlaceId`)",
+            )
+        }
+    }
 }

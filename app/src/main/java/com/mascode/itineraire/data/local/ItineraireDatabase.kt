@@ -19,6 +19,7 @@ import com.mascode.itineraire.data.local.entity.JourneyObservationEntity
 import com.mascode.itineraire.data.local.entity.LocalAccountEntity
 import com.mascode.itineraire.data.local.entity.PlaceEntity
 import com.mascode.itineraire.data.local.entity.QuickActionEntity
+import com.mascode.itineraire.data.local.entity.PlannedJourneyLegEntity
 
 @Database(
     entities = [
@@ -31,8 +32,9 @@ import com.mascode.itineraire.data.local.entity.QuickActionEntity
         LocalAccountEntity::class,
         AppSecurityEntity::class,
         QuickActionEntity::class,
+        PlannedJourneyLegEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
