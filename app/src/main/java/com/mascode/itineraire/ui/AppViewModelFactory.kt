@@ -31,6 +31,7 @@ class AppViewModelFactory(private val container: AppContainer) : ViewModelProvid
                 container.localAccountRepository,
                 container.appSecurityRepository,
                 container.themeRepository,
+                container.journeyNotificationManager,
             ) as T
 
         modelClass.isAssignableFrom(TodayViewModel::class.java) -> TodayViewModel(

@@ -77,7 +77,7 @@ class MainActivity : FragmentActivity() {
         if (!isChangingConfigurations) appViewModel.lock()
         lifecycleScope.launch {
             updateJourneyWidgets(this@MainActivity)
-            applicationContainer.journeyNotificationManager.synchronize()
+            applicationContainer.journeyNotificationManager.refreshRunningNotification()
         }
     }
 

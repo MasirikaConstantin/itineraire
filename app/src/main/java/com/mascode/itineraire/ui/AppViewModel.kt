@@ -7,6 +7,7 @@ import com.mascode.itineraire.data.repository.AppSecurityRepository
 import com.mascode.itineraire.data.repository.LocalAccountRepository
 import com.mascode.itineraire.data.repository.ThemeRepository
 import com.mascode.itineraire.domain.model.ThemeMode
+import com.mascode.itineraire.ui.notification.JourneyNotificationManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -32,6 +33,7 @@ class AppViewModel(
     private val accountRepository: LocalAccountRepository,
     private val securityRepository: AppSecurityRepository,
     private val themeRepository: ThemeRepository,
+    private val journeyNotificationManager: JourneyNotificationManager,
 ) : ViewModel() {
     private val authenticated = MutableStateFlow(false)
     private val message = MutableStateFlow<String?>(null)
@@ -79,6 +81,7 @@ class AppViewModel(
                 if (enabled) authenticated.value = true
                 securityRepository.setBiometricLockEnabled(enabled)
             }.onSuccess {
+                journeyNotificationManager.refreshRunningNotification()
                 message.value = if (enabled) {
                     "Protection biométrique activée."
                 } else {
@@ -93,11 +96,13 @@ class AppViewModel(
     fun unlock() {
         message.value = null
         authenticated.value = true
+        viewModelScope.launch { journeyNotificationManager.refreshRunningNotification() }
     }
 
     fun lock() {
         message.value = null
         authenticated.value = false
+        viewModelScope.launch { journeyNotificationManager.refreshRunningNotification() }
     }
 
     fun reportAuthenticationError(error: String) {
