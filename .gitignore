@@ -15,3 +15,6 @@
 .cxx
 local.properties
 .kotlin
+itineraire.jks
+/app/release/*
+/app/release/
