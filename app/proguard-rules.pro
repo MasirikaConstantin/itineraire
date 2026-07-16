@@ -19,3 +19,9 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Glance persiste et résout certaines classes de widget et d'action par leur nom.
+# Les conserver évite un widget vide dans les builds release minifiées.
+-keep class com.mascode.itineraire.ui.widget.** { *; }
+-keep class * extends androidx.glance.appwidget.GlanceAppWidgetReceiver { *; }
+-keep class * implements androidx.glance.appwidget.action.ActionCallback { *; }

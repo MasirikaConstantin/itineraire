@@ -87,6 +87,7 @@ class BackupRepository(
                 }
             }
         }
+        database.invalidationTracker.refreshAsync()
 
         rowsByTable.mapValues { it.value.length() }.toSummary()
     }
