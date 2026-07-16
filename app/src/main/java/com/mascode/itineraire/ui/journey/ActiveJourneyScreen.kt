@@ -1,5 +1,7 @@
 package com.mascode.itineraire.ui.journey
 
+import android.widget.Toast
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -24,6 +26,8 @@ import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.AddRoad
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.DragHandle
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Straighten
@@ -55,10 +59,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mascode.itineraire.data.local.entity.JourneyLegEntity
 import com.mascode.itineraire.data.local.entity.JourneyObservationEntity
@@ -73,6 +82,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,6 +93,7 @@ fun ActiveJourneyScreen(
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val journey = state.journey
     var showStartLegDialog by remember { mutableStateOf(false) }
     var legToFinish by remember { mutableStateOf<JourneyLegEntity?>(null) }
@@ -210,8 +221,19 @@ fun ActiveJourneyScreen(
                 }
 
                 if (state.plannedLegs.isNotEmpty()) {
-                    item { Text("Tronçons prévus", style = MaterialTheme.typography.titleLarge) }
+                    item {
+                        Text("Tronçons prévus", style = MaterialTheme.typography.titleLarge)
+                        if (state.plannedLegs.size > 2) {
+                            Text(
+                                "Maintenez puis glissez une étape intermédiaire pour changer l'ordre.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
                     items(state.plannedLegs, key = { it.id }) { plannedLeg ->
+                        val index = state.plannedLegs.indexOfFirst { it.id == plannedLeg.id }
+                        val isFinalLeg = index == state.plannedLegs.lastIndex
                         PlannedLegCard(
                             leg = plannedLeg,
                             places = state.places,
@@ -220,6 +242,20 @@ fun ActiveJourneyScreen(
                                 plannedLeg.id == state.plannedLegs.first().id,
                             onStart = { viewModel.startPlannedLeg(plannedLeg.id) },
                             onDelete = { viewModel.deletePlannedLeg(plannedLeg.id) },
+                            canReorder = !isFinalLeg && state.plannedLegs.size > 2 && state.activeLeg == null,
+                            isFinalLeg = isFinalLeg,
+                            onMove = { offset ->
+                                val target = (index + offset).coerceIn(0, state.plannedLegs.lastIndex - 1)
+                                if (target != index) {
+                                    viewModel.reorderPlannedLeg(index, target) {
+                                        Toast.makeText(
+                                            context,
+                                            "Nouvel ordre des tronçons enregistré.",
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
+                                    }
+                                }
+                            },
                         )
                     }
                 }
@@ -524,10 +560,37 @@ private fun PlannedLegCard(
     canStart: Boolean,
     onStart: () -> Unit,
     onDelete: () -> Unit,
+    canReorder: Boolean,
+    isFinalLeg: Boolean,
+    onMove: (Int) -> Unit,
 ) {
     val placesById = places.associateBy(PlaceEntity::id)
+    var dragOffset by remember { mutableStateOf(0f) }
+    var itemHeight by remember { mutableStateOf(1) }
+    val dragModifier = if (canReorder) {
+        Modifier
+            .zIndex(if (dragOffset == 0f) 0f else 1f)
+            .graphicsLayer { translationY = dragOffset }
+            .onSizeChanged { itemHeight = it.height.coerceAtLeast(1) }
+            .pointerInput(leg.id, itemHeight) {
+                detectDragGesturesAfterLongPress(
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        dragOffset += dragAmount.y
+                    },
+                    onDragCancel = { dragOffset = 0f },
+                    onDragEnd = {
+                    val positions = (dragOffset / itemHeight.toFloat()).roundToInt()
+                    dragOffset = 0f
+                    if (positions != 0) onMove(positions)
+                    },
+                )
+            }
+    } else {
+        Modifier
+    }
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().then(dragModifier),
         colors = CardDefaults.cardColors(
             containerColor = if (canStart) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainer,
         ),
@@ -540,9 +603,26 @@ private fun PlannedLegCard(
                     "${leg.position + 1}. ${placesById[leg.sourcePlaceId]?.name.orUnknown()} → " +
                         placesById[leg.destinationPlaceId]?.name.orUnknown(),
                     style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f),
                 )
+                when {
+                    isFinalLeg -> Icon(
+                        Icons.Outlined.Lock,
+                        contentDescription = "Destination finale verrouillée",
+                    )
+                    canReorder -> Icon(
+                        Icons.Outlined.DragHandle,
+                        contentDescription = "Glisser pour réordonner",
+                    )
+                }
             }
-            Text("${transportLabel(leg.transportMode)} · Pas encore commencé")
+            Text(
+                if (isFinalLeg) {
+                    "${transportLabel(leg.transportMode)} · Destination finale"
+                } else {
+                    "${transportLabel(leg.transportMode)} · Pas encore commencé"
+                },
+            )
             if (canStart) {
                 Button(onClick = onStart, modifier = Modifier.fillMaxWidth()) {
                     Text("Commencer ce tronçon")

@@ -32,6 +32,9 @@ interface JourneyDao {
     @Query("SELECT * FROM planned_journey_legs WHERE journeyId = :journeyId ORDER BY position")
     fun observePlannedLegs(journeyId: String): Flow<List<PlannedJourneyLegEntity>>
 
+    @Query("SELECT * FROM planned_journey_legs WHERE journeyId = :journeyId ORDER BY position")
+    suspend fun getPlannedLegs(journeyId: String): List<PlannedJourneyLegEntity>
+
     @Query("SELECT * FROM planned_journey_legs WHERE id = :plannedLegId LIMIT 1")
     suspend fun findPlannedLeg(plannedLegId: String): PlannedJourneyLegEntity?
 
@@ -43,6 +46,15 @@ interface JourneyDao {
 
     @Query("DELETE FROM planned_journey_legs WHERE journeyId = :journeyId AND position >= :position")
     suspend fun deletePlannedLegsFrom(journeyId: String, position: Int): Int
+
+    @Query("DELETE FROM planned_journey_legs WHERE journeyId = :journeyId")
+    suspend fun deleteAllPlannedLegs(journeyId: String)
+
+    @Transaction
+    suspend fun replacePlannedLegs(journeyId: String, legs: List<PlannedJourneyLegEntity>) {
+        deleteAllPlannedLegs(journeyId)
+        if (legs.isNotEmpty()) insertPlannedLegs(legs)
+    }
 
     @Transaction
     suspend fun insertJourneyWithPlan(

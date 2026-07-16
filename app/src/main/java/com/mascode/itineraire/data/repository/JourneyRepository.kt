@@ -82,6 +82,32 @@ class JourneyRepository(private val journeyDao: JourneyDao) {
         journeyDao.deletePlannedLegsFrom(plannedLeg.journeyId, plannedLeg.position)
     }
 
+    suspend fun reorderPlannedLeg(journeyId: String, fromIndex: Int, toIndex: Int) {
+        val legs = journeyDao.getPlannedLegs(journeyId)
+        require(legs.size >= 3) { "Il faut au moins deux étapes intermédiaires à réordonner." }
+        val lastIndex = legs.lastIndex
+        require(fromIndex in 0 until lastIndex && toIndex in 0 until lastIndex) {
+            "La destination finale doit rester en dernière position."
+        }
+        if (fromIndex == toIndex) return
+
+        val reordered = legs.toMutableList().apply {
+            add(toIndex, removeAt(fromIndex))
+        }
+        val finalDestinationId = legs.last().destinationPlaceId
+        check(reordered.last().destinationPlaceId == finalDestinationId) {
+            "La destination finale doit rester en dernière position."
+        }
+        val firstSourceId = legs.first().sourcePlaceId
+        var sourceId = firstSourceId
+        val continuousLegs = reordered.mapIndexed { index, leg ->
+            leg.copy(position = index, sourcePlaceId = sourceId).also {
+                sourceId = it.destinationPlaceId
+            }
+        }
+        journeyDao.replacePlannedLegs(journeyId, continuousLegs)
+    }
+
     suspend fun startLeg(
         journeyId: String,
         sourcePlaceId: String?,

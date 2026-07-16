@@ -131,6 +131,16 @@ class ActiveJourneyViewModel(
         }
     }
 
+    fun reorderPlannedLeg(fromIndex: Int, toIndex: Int, onReordered: () -> Unit) {
+        viewModelScope.launch {
+            runCatching { journeyRepository.reorderPlannedLeg(journeyId, fromIndex, toIndex) }
+                .onSuccess { onReordered() }
+                .onFailure { error ->
+                    errorMessage.value = error.message ?: "Impossible de réordonner les tronçons."
+                }
+        }
+    }
+
     fun addObservation(type: ObservationType, notes: String?) {
         runAction("Impossible d'ajouter cette observation.") {
             journeyRepository.addObservation(journeyId, uiState.value.activeLeg?.id, type, notes)
