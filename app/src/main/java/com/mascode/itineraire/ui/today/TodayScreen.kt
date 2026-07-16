@@ -70,6 +70,7 @@ fun TodayScreen(
     onOpenPlaces: () -> Unit,
     onOpenJourney: (String) -> Unit,
     onAddEvent: () -> Unit,
+    onEditEvent: (String) -> Unit,
     onManageQuickActions: () -> Unit,
     onStartJourney: () -> Unit,
     modifier: Modifier = Modifier,
@@ -102,6 +103,7 @@ fun TodayScreen(
                 onOpenPlaces = onOpenPlaces,
                 onOpenJourney = onOpenJourney,
                 onAddEvent = onAddEvent,
+                onEditEvent = onEditEvent,
                 onManageQuickActions = onManageQuickActions,
                 onStartJourney = onStartJourney,
                 modifier = Modifier.weight(1f),
@@ -171,6 +173,7 @@ private fun DayContent(
     onOpenPlaces: () -> Unit,
     onOpenJourney: (String) -> Unit,
     onAddEvent: () -> Unit,
+    onEditEvent: (String) -> Unit,
     onManageQuickActions: () -> Unit,
     onStartJourney: () -> Unit,
     modifier: Modifier = Modifier,
@@ -339,6 +342,7 @@ private fun DayContent(
         } else {
             items(state.events, key = { it.id }) { event ->
                 Card(
+                    onClick = { onEditEvent(event.id) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                 ) {

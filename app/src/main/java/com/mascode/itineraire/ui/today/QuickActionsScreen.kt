@@ -16,6 +16,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +46,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mascode.itineraire.domain.model.DayEventType
+import com.mascode.itineraire.data.local.entity.QuickActionEntity
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -56,6 +60,8 @@ fun QuickActionsScreen(
     var eventType by remember { mutableStateOf(DayEventType.ACTIVITY) }
     var placeId by remember { mutableStateOf<String?>(null) }
     var notes by remember { mutableStateOf("") }
+    var editedAction by remember { mutableStateOf<QuickActionEntity?>(null) }
+    var actionToDelete by remember { mutableStateOf<QuickActionEntity?>(null) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val labelFocusRequester = remember { FocusRequester() }
 
@@ -110,7 +116,16 @@ fun QuickActionsScreen(
                                         }
                                     }
                                 }
-                                IconButton(onClick = { viewModel.deleteQuickAction(action) }) {
+                                IconButton(onClick = {
+                                    editedAction = action
+                                    label = action.label
+                                    eventType = action.eventType
+                                    placeId = action.placeId
+                                    notes = action.notes.orEmpty()
+                                }) {
+                                    Icon(Icons.Outlined.Edit, contentDescription = "Modifier ${action.label}")
+                                }
+                                IconButton(onClick = { actionToDelete = action }) {
                                     Icon(
                                         Icons.Outlined.Delete,
                                         contentDescription = "Supprimer ${action.label}",
@@ -123,7 +138,12 @@ fun QuickActionsScreen(
                 }
             }
             item { HorizontalDivider() }
-            item { Text("Nouvelle action", style = MaterialTheme.typography.titleLarge) }
+            item {
+                Text(
+                    if (editedAction == null) "Nouvelle action" else "Modifier l'action",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            }
             item {
                 OutlinedTextField(
                     value = label,
@@ -191,26 +211,56 @@ fun QuickActionsScreen(
             item {
                 Button(
                     onClick = {
-                        viewModel.addQuickAction(
-                            label = label,
-                            eventType = eventType,
-                            placeId = placeId,
-                            notes = notes,
-                            onSaved = {
+                        val resetForm = {
                                 label = ""
                                 eventType = DayEventType.ACTIVITY
                                 placeId = null
                                 notes = ""
-                            },
-                        )
+                                editedAction = null
+                        }
+                        editedAction?.let { action ->
+                            viewModel.updateQuickAction(action, label, eventType, placeId, notes, resetForm)
+                        } ?: viewModel.addQuickAction(label, eventType, placeId, notes, resetForm)
                     },
                     enabled = label.isNotBlank(),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("Ajouter l'action")
+                    Text(if (editedAction == null) "Ajouter l'action" else "Enregistrer les modifications")
+                }
+            }
+            if (editedAction != null) {
+                item {
+                    TextButton(
+                        onClick = {
+                            label = ""
+                            eventType = DayEventType.ACTIVITY
+                            placeId = null
+                            notes = ""
+                            editedAction = null
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text("Annuler la modification") }
                 }
             }
             item { Spacer(Modifier.height(16.dp)) }
         }
+    }
+
+    actionToDelete?.let { action ->
+        AlertDialog(
+            onDismissRequest = { actionToDelete = null },
+            title = { Text("Supprimer cette action ?") },
+            text = { Text("Le raccourci « ${action.label} » sera définitivement supprimé.") },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    viewModel.deleteQuickAction(action)
+                    if (editedAction?.id == action.id) editedAction = null
+                    actionToDelete = null
+                }) { Text("Supprimer", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { actionToDelete = null }) { Text("Annuler") }
+            },
+        )
     }
 }

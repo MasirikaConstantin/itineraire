@@ -52,6 +52,7 @@ import java.util.Locale
 fun AddEventScreen(
     viewModel: TodayViewModel,
     onBack: () -> Unit,
+    eventId: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -62,6 +63,18 @@ fun AddEventScreen(
     var selectedHour by remember { mutableIntStateOf(currentTime.hour) }
     var selectedMinute by remember { mutableIntStateOf(currentTime.minute) }
     var showTimePicker by remember { mutableStateOf(false) }
+    var confirmDelete by remember { mutableStateOf(false) }
+    val event = state.events.firstOrNull { it.id == eventId }
+    androidx.compose.runtime.LaunchedEffect(event?.id) {
+        event?.let {
+            type = it.type
+            placeId = it.placeId
+            notes = it.notes.orEmpty()
+            val time = it.occurredAt.atZone(ZoneId.systemDefault()).toLocalTime()
+            selectedHour = time.hour
+            selectedMinute = time.minute
+        }
+    }
     val occurredAt = state.selectedDate
         .atTime(selectedHour, selectedMinute)
         .atZone(ZoneId.systemDefault())
@@ -74,7 +87,7 @@ fun AddEventScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
-                title = { Text("Ajouter un événement") },
+                title = { Text(if (eventId == null) "Ajouter un événement" else "Modifier l'événement") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Retour")
@@ -167,18 +180,23 @@ fun AddEventScreen(
             item {
                 Button(
                     onClick = {
-                        viewModel.addEvent(
-                            type = type,
-                            occurredAt = occurredAt,
-                            placeId = placeId,
-                            notes = notes,
-                            onSaved = onBack,
-                        )
+                        if (eventId == null) {
+                            viewModel.addEvent(type, occurredAt, placeId, notes, onSaved = onBack)
+                        } else {
+                            viewModel.updateEvent(eventId, type, occurredAt, placeId, notes, onSaved = onBack)
+                        }
                     },
                     enabled = state.dayId != null && !isFuture,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("Enregistrer l'événement")
+                    Text(if (eventId == null) "Enregistrer l'événement" else "Enregistrer les modifications")
+                }
+            }
+            if (eventId != null) {
+                item {
+                    TextButton(onClick = { confirmDelete = true }, modifier = Modifier.fillMaxWidth()) {
+                        Text("Supprimer l'événement", color = MaterialTheme.colorScheme.error)
+                    }
                 }
             }
             item { Spacer(Modifier.height(16.dp)) }
@@ -209,6 +227,19 @@ fun AddEventScreen(
             dismissButton = {
                 TextButton(onClick = { showTimePicker = false }) { Text("Annuler") }
             },
+        )
+    }
+    if (confirmDelete && eventId != null) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = { Text("Supprimer cet événement ?") },
+            text = { Text("Cette suppression est définitive.") },
+            confirmButton = {
+                TextButton(onClick = { viewModel.deleteEvent(eventId, onBack) }) {
+                    Text("Supprimer", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Annuler") } },
         )
     }
 }

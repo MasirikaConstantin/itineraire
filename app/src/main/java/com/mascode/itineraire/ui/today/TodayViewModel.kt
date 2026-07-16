@@ -129,6 +129,29 @@ class TodayViewModel(
         }
     }
 
+    fun updateEvent(
+        eventId: String,
+        type: DayEventType,
+        occurredAt: Instant,
+        placeId: String?,
+        notes: String?,
+        onSaved: () -> Unit = {},
+    ) {
+        viewModelScope.launch {
+            runCatching { dayRepository.updateEvent(eventId, type, occurredAt, placeId, notes) }
+                .onSuccess { onSaved() }
+                .onFailure { errorMessage.value = it.message ?: "Impossible de modifier l'événement." }
+        }
+    }
+
+    fun deleteEvent(eventId: String, onDeleted: () -> Unit = {}) {
+        viewModelScope.launch {
+            runCatching { dayRepository.deleteEvent(eventId) }
+                .onSuccess { onDeleted() }
+                .onFailure { errorMessage.value = it.message ?: "Impossible de supprimer l'événement." }
+        }
+    }
+
     fun runQuickAction(action: QuickActionEntity) {
         addEvent(
             type = action.eventType,
@@ -157,6 +180,21 @@ class TodayViewModel(
         viewModelScope.launch {
             runCatching { quickActionRepository.delete(action) }
                 .onFailure { errorMessage.value = "Impossible de supprimer cette action." }
+        }
+    }
+
+    fun updateQuickAction(
+        action: QuickActionEntity,
+        label: String,
+        eventType: DayEventType,
+        placeId: String?,
+        notes: String?,
+        onSaved: () -> Unit = {},
+    ) {
+        viewModelScope.launch {
+            runCatching { quickActionRepository.update(action, label, eventType, placeId, notes) }
+                .onSuccess { onSaved() }
+                .onFailure { errorMessage.value = "Cette action existe déjà ou n'est pas valide." }
         }
     }
 
