@@ -118,7 +118,7 @@ L'injection des dépendances est volontairement manuelle pour garder le projet s
 
 ## État actuel
 
-La version actuelle `1.9.0` permet de :
+La version actuelle `1.10.0` permet de :
 
 - utiliser l'application sans créer de compte ni activer de protection ;
 - créer, modifier ou supprimer un profil local facultatif depuis une page dédiée ;
@@ -142,6 +142,8 @@ La version actuelle `1.9.0` permet de :
 - retrouver les tronçons terminés rapidement depuis le widget ou la notification dans un écran **Données à compléter** ;
 - signaler les embouteillages, attentes, pannes, problèmes météo et autres observations ;
 - consulter le résumé détaillé et le coût total d'un trajet depuis l'historique ;
+- consulter le bilan d'un trajet terminé avec durée, distance, dépense et répartition par transport ;
+- parcourir une chronologie unifiée du départ, des tronçons, des observations et de l'arrivée ;
 - parcourir un historique regroupé par journée, filtrer les trajets par état et consulter une synthèse globale ;
 - modifier ou supprimer un trajet terminé, ses tronçons, les événements et les actions rapides personnalisées ;
 - demander une confirmation explicite avant chaque suppression destructive ;
@@ -206,6 +208,10 @@ Les trajets sont regroupés par journée et affichent leur itinéraire, leur heu
 Lorsqu'un tronçon a été terminé rapidement depuis le widget ou la notification, une carte visible dans l'Historique indique le nombre d'éléments à compléter. Elle ouvre une liste dédiée puis un éditeur plein écran, sans fenêtre modale. L'utilisateur peut y saisir le prix en CDF et corriger les lieux, le transport, les horaires et les notes avant validation. Les horaires utilisent les sélecteurs Material de date et d'heure avec les valeurs enregistrées déjà présélectionnées ; aucune date complète ne doit être saisie au clavier. La validation retire uniquement le marqueur « à compléter » ; elle conserve le tronçon, son trajet et toutes les autres données locales.
 
 Depuis le résumé d'un trajet terminé ou annulé, chaque tronçon terminé peut être modifié dans un écran complet : lieux, transport, horaires, prix et notes. Le trajet lui-même possède un éditeur pour sa source, sa destination, ses horaires globaux et ses notes. Un trajet actif ne peut pas être supprimé ni modifié par ces écrans afin de protéger le suivi en cours.
+
+Le résumé terminé présente un bilan avec la durée totale, la distance Haversine disponible, la dépense totale et le nombre de tronçons. La répartition par transport regroupe les tronçons de même mode et affiche pour chacun leur nombre, leur durée cumulée, leur coût et leur distance calculable. Si certains lieux ne sont pas localisés, l'interface distingue une distance directe entre les extrémités du trajet d'une distance totale calculée sur tous les tronçons.
+
+La chronologie complète fusionne dans l'ordre réel le départ du trajet, le début et la fin de chaque tronçon, les observations et l'arrivée finale ou l'annulation. Lorsque la fin d'un tronçon et le début du suivant partagent la même heure, la fin apparaît d'abord. Les fins de tronçon donnent accès à leur modification sans quitter le résumé général.
 
 La suppression d'un tronçon conserve le trajet et ses autres étapes. La suppression d'un trajet est définitive et entraîne, grâce aux relations Room, la suppression de ses tronçons, étapes prévues et observations. Une confirmation décrit cette conséquence avant l'opération. Retirer un tronçon encore prévu demande également confirmation et retire les étapes suivantes, conformément à la continuité du parcours.
 
