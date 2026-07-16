@@ -51,6 +51,7 @@ import com.mascode.itineraire.ui.journey.ActiveJourneyViewModel
 import com.mascode.itineraire.ui.journey.IncompleteLegsViewModel
 import com.mascode.itineraire.ui.journey.IncompleteLegsScreen
 import com.mascode.itineraire.ui.journey.CompleteLegScreen
+import com.mascode.itineraire.ui.journey.EditJourneyScreen
 import com.mascode.itineraire.ui.journey.StartJourneyScreen
 import com.mascode.itineraire.ui.places.PlaceEditorScreen
 import com.mascode.itineraire.ui.places.PlacesScreen
@@ -82,6 +83,7 @@ private const val START_JOURNEY_ROUTE = "journeys/start"
 private const val ADD_PLACE_ROUTE = "places/add"
 private const val EDIT_PLACE_ROUTE = "places/edit/{placeId}"
 private const val ADD_EVENT_ROUTE = "events/add"
+private const val EDIT_EVENT_ROUTE = "events/edit/{eventId}"
 private const val QUICK_ACTIONS_ROUTE = "events/quick-actions"
 private const val PROFILE_ROUTE = "settings/profile"
 private const val SECURITY_ROUTE = "settings/security"
@@ -90,6 +92,7 @@ private const val PRIVACY_POLICY_ROUTE = "settings/privacy-policy"
 private const val BACKUP_ROUTE = "settings/backup"
 private const val INCOMPLETE_LEGS_ROUTE = "journeys/incomplete"
 private const val COMPLETE_LEG_ROUTE = "journeys/incomplete/{legId}"
+private const val EDIT_JOURNEY_ROUTE = "journeys/edit/{journeyId}"
 
 @Composable
 fun ItineraireApp(
@@ -205,6 +208,7 @@ private fun MainNavigation(
                                 },
                                 onOpenJourney = { journeyId -> navController.navigate("journey/$journeyId") },
                                 onAddEvent = { navController.navigate(ADD_EVENT_ROUTE) },
+                                onEditEvent = { eventId -> navController.navigate("events/edit/$eventId") },
                                 onManageQuickActions = { navController.navigate(QUICK_ACTIONS_ROUTE) },
                                 onStartJourney = { navController.navigate(START_JOURNEY_ROUTE) },
                             )
@@ -273,7 +277,12 @@ private fun MainNavigation(
                     key = "active-journey-$journeyId",
                     factory = factory.activeJourneyFactory(journeyId),
                 )
-                ActiveJourneyScreen(viewModel = viewModel, onBack = navController::popBackStack)
+                ActiveJourneyScreen(
+                    viewModel = viewModel,
+                    onBack = navController::popBackStack,
+                    onEditLeg = { legId -> navController.navigate("journeys/incomplete/$legId") },
+                    onEditJourney = { journeyId -> navController.navigate("journeys/edit/$journeyId") },
+                )
             }
             composable(START_JOURNEY_ROUTE) { entry ->
                 val mainEntry = remember(entry) { navController.getBackStackEntry(MAIN_ROUTE) }
@@ -304,6 +313,19 @@ private fun MainNavigation(
                     factory = factory,
                 )
                 AddEventScreen(viewModel = viewModel, onBack = navController::popBackStack)
+            }
+            composable(EDIT_EVENT_ROUTE) { entry ->
+                val eventId = entry.arguments?.getString("eventId") ?: return@composable
+                val mainEntry = remember(entry) { navController.getBackStackEntry(MAIN_ROUTE) }
+                val viewModel: TodayViewModel = viewModel(
+                    viewModelStoreOwner = mainEntry,
+                    factory = factory,
+                )
+                AddEventScreen(
+                    viewModel = viewModel,
+                    eventId = eventId,
+                    onBack = navController::popBackStack,
+                )
             }
             composable(QUICK_ACTIONS_ROUTE) { entry ->
                 val mainEntry = remember(entry) { navController.getBackStackEntry(MAIN_ROUTE) }
@@ -377,6 +399,22 @@ private fun MainNavigation(
                     legId = legId,
                     onBack = navController::popBackStack,
                     onSaved = navController::popBackStack,
+                    allowDelete = true,
+                )
+            }
+            composable(EDIT_JOURNEY_ROUTE) { entry ->
+                val journeyId = entry.arguments?.getString("journeyId") ?: return@composable
+                val viewModel: ActiveJourneyViewModel = viewModel(
+                    key = "edit-journey-$journeyId",
+                    factory = factory.activeJourneyFactory(journeyId),
+                )
+                EditJourneyScreen(
+                    viewModel = viewModel,
+                    onBack = navController::popBackStack,
+                    onDeleted = {
+                        navController.popBackStack(MAIN_ROUTE, inclusive = false)
+                        coroutineScope.launch { pagerState.animateScrollToPage(Destination.HISTORY.ordinal) }
+                    },
                 )
             }
         }
