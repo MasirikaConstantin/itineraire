@@ -2,6 +2,7 @@ package com.mascode.itineraire.ui.widget
 
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -74,8 +75,20 @@ class AdvanceJourneyAction : ActionCallback {
         val container = context.appContainer
         if (container.appSecurityRepository.isBiometricLockEnabled()) return
         val journeyId = parameters[JOURNEY_ID] ?: return
-        runCatching { container.journeyRepository.finishActiveLegAndStartNext(journeyId) }
+        val result = runCatching {
+            container.journeyRepository.finishActiveLegAndStartNext(journeyId)
+        }
         JourneyWidget().updateAll(context)
+        withContext(Dispatchers.Main) {
+            Toast.makeText(
+                context,
+                result.fold(
+                    onSuccess = { "Tronçon suivant démarré." },
+                    onFailure = { it.message ?: "Impossible de faire avancer le trajet." },
+                ),
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
     }
 }
 
@@ -114,11 +127,15 @@ private fun JourneyWidgetContent(state: JourneyWidgetState) {
         modifier = GlanceModifier
             .fillMaxSize()
             .background(WIDGET_BACKGROUND)
-            .padding(16.dp)
-            .clickable(actionStartActivity(Intent(androidx.glance.LocalContext.current, MainActivity::class.java))),
+            .padding(16.dp),
         verticalAlignment = Alignment.Vertical.CenterVertically,
     ) {
-        Row(verticalAlignment = Alignment.Vertical.CenterVertically) {
+        Row(
+            modifier = GlanceModifier
+                .fillMaxWidth()
+                .clickable(actionStartActivity(Intent(androidx.glance.LocalContext.current, MainActivity::class.java))),
+            verticalAlignment = Alignment.Vertical.CenterVertically,
+        ) {
             Image(
                 provider = ImageProvider(R.drawable.ic_widget_route),
                 contentDescription = null,
