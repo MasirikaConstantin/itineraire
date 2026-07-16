@@ -160,6 +160,22 @@ La version actuelle `1.11.0` permet de :
 
 La position facultative permet de calculer dans le résumé une distance à vol d'oiseau avec la formule de Haversine. Lorsque tous les tronçons sont localisés, leurs distances sont additionnées ; sinon, le calcul relie directement la source et la destination finales si leurs positions sont disponibles. Cette estimation ne représente pas la longueur réelle du réseau routier. Une position n'est pas nécessaire pour enregistrer ou utiliser un lieu.
 
+## Stabilisation avant release
+
+La release est construite avec R8 (`isMinifyEnabled = true`) et la suppression des ressources inutilisées (`isShrinkResources = true`). Les classes du widget Glance sont conservées dans les règles R8 afin que le widget et ses actions restent fonctionnels après minification. L'APK release produit actuellement environ 5 Mo, tandis que l'APK debug reste beaucoup plus volumineux à cause des outils de développement.
+
+La validation locale à exécuter avant une publication est :
+
+```bash
+./gradlew --no-daemon lintDebug assembleDebug testDebugUnitTest assembleRelease
+```
+
+Les permissions sont limitées à leurs usages : la localisation est demandée uniquement lors de l'enregistrement de la position actuelle d'un lieu, et les notifications sont demandées au premier affichage nécessaire. L'application ne demande pas de localisation en arrière-plan et ne suit pas les déplacements par GPS.
+
+Le widget et la notification persistante lisent le même trajet actif dans Room. Le widget permet de terminer le tronçon ou de passer au suivant ; la notification reste visible pendant le tronçon actif et utilise une version générique sur l'écran verrouillé. Après une action depuis l'un ou l'autre, les données observables, le widget et la notification sont rafraîchis.
+
+La sauvegarde JSON exporte les tables locales dans un fichier choisi par l'utilisateur. La restauration vérifie le format, la version et les colonnes avant de remplacer les données, puis force le rafraîchissement Room afin que les écrans ouverts reflètent immédiatement les données restaurées. Une restauration remplace les données présentes : il faut donc créer une sauvegarde avant de l'utiliser.
+
 ## Démarrage d'un trajet
 
 Depuis l'accueil, **Commencer un trajet** ouvre une page complète et non une fenêtre modale. Le départ et la destination sont présentés dans un résumé compact ; la liste de lieux n'apparaît que lorsque l'utilisateur choisit de modifier l'un des deux. Cette organisation reste utilisable lorsque la base contient beaucoup de lieux et laisse de la place pour enrichir ultérieurement la préparation du trajet.
