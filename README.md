@@ -150,7 +150,7 @@ La position facultative permet de calculer dans le résumé une distance à vol 
 
 ## Démarrage d'un trajet
 
-Depuis l'accueil, **Commencer un trajet** ouvre une page complète et non une fenêtre modale. Le lieu de départ et la destination finale restent visibles en haut du formulaire, tandis qu'une seule liste de lieux défilante sert à modifier l'élément sélectionné. Cette organisation reste utilisable lorsque la base contient beaucoup de lieux et laisse de la place pour enrichir ultérieurement la préparation du trajet.
+Depuis l'accueil, **Commencer un trajet** ouvre une page complète et non une fenêtre modale. Le départ et la destination sont présentés dans un résumé compact ; la liste de lieux n'apparaît que lorsque l'utilisateur choisit de modifier l'un des deux. Cette organisation reste utilisable lorsque la base contient beaucoup de lieux et laisse de la place pour enrichir ultérieurement la préparation du trajet.
 
 Le bouton de démarrage reste accessible en bas de l'écran. Il crée le trajet dans la journée courante avec les mêmes dépôts Room que le reste de l'application, puis ouvre son suivi détaillé. Revenir en arrière ne crée rien. Cette évolution d'interface ne modifie ni le schéma de la base locale ni les trajets, lieux et événements déjà enregistrés.
 
