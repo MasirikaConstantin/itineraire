@@ -48,6 +48,9 @@ import com.mascode.itineraire.ui.history.HistoryScreen
 import com.mascode.itineraire.ui.history.HistoryViewModel
 import com.mascode.itineraire.ui.journey.ActiveJourneyScreen
 import com.mascode.itineraire.ui.journey.ActiveJourneyViewModel
+import com.mascode.itineraire.ui.journey.IncompleteLegsViewModel
+import com.mascode.itineraire.ui.journey.IncompleteLegsScreen
+import com.mascode.itineraire.ui.journey.CompleteLegScreen
 import com.mascode.itineraire.ui.journey.StartJourneyScreen
 import com.mascode.itineraire.ui.places.PlaceEditorScreen
 import com.mascode.itineraire.ui.places.PlacesScreen
@@ -85,6 +88,8 @@ private const val SECURITY_ROUTE = "settings/security"
 private const val THEME_ROUTE = "settings/theme"
 private const val PRIVACY_POLICY_ROUTE = "settings/privacy-policy"
 private const val BACKUP_ROUTE = "settings/backup"
+private const val INCOMPLETE_LEGS_ROUTE = "journeys/incomplete"
+private const val COMPLETE_LEG_ROUTE = "journeys/incomplete/{legId}"
 
 @Composable
 fun ItineraireApp(
@@ -210,6 +215,7 @@ private fun MainNavigation(
                             HistoryScreen(
                                 viewModel = viewModel,
                                 onOpenJourney = { journeyId -> navController.navigate("journey/$journeyId") },
+                                onOpenIncompleteLegs = { navController.navigate(INCOMPLETE_LEGS_ROUTE) },
                             )
                         }
 
@@ -354,6 +360,24 @@ private fun MainNavigation(
             composable(BACKUP_ROUTE) {
                 val viewModel: BackupViewModel = viewModel(factory = factory)
                 BackupScreen(viewModel = viewModel, onBack = navController::popBackStack)
+            }
+            composable(INCOMPLETE_LEGS_ROUTE) {
+                val viewModel: IncompleteLegsViewModel = viewModel(factory = factory)
+                IncompleteLegsScreen(
+                    viewModel = viewModel,
+                    onBack = navController::popBackStack,
+                    onEditLeg = { legId -> navController.navigate("journeys/incomplete/$legId") },
+                )
+            }
+            composable(COMPLETE_LEG_ROUTE) { entry ->
+                val legId = entry.arguments?.getString("legId") ?: return@composable
+                val viewModel: IncompleteLegsViewModel = viewModel(factory = factory)
+                CompleteLegScreen(
+                    viewModel = viewModel,
+                    legId = legId,
+                    onBack = navController::popBackStack,
+                    onSaved = navController::popBackStack,
+                )
             }
         }
     }

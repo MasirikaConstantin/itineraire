@@ -18,6 +18,7 @@ import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Timeline
@@ -61,6 +62,7 @@ private enum class HistoryFilter(val label: String) {
 fun HistoryScreen(
     viewModel: HistoryViewModel,
     onOpenJourney: (String) -> Unit,
+    onOpenIncompleteLegs: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -83,6 +85,14 @@ fun HistoryScreen(
         if (state.journeys.isNotEmpty()) {
             item {
                 HistorySummary(state.journeys)
+            }
+            if (state.incompleteLegs.isNotEmpty()) {
+                item {
+                    IncompleteDataCard(
+                        count = state.incompleteLegs.size,
+                        onClick = onOpenIncompleteLegs,
+                    )
+                }
             }
             item {
                 FlowRow(
@@ -123,6 +133,45 @@ fun HistoryScreen(
         }
 
         item { Spacer(Modifier.height(16.dp)) }
+    }
+}
+
+@Composable
+private fun IncompleteDataCard(count: Int, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Outlined.EditNote,
+                contentDescription = null,
+                modifier = Modifier.size(28.dp),
+                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
+            Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
+                Text(
+                    "$count tronçon${if (count > 1) "s" else ""} à compléter",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                )
+                Text(
+                    "Ajoutez le prix et vérifiez les informations enregistrées.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                )
+            }
+            Icon(
+                Icons.Outlined.ChevronRight,
+                contentDescription = "Ouvrir",
+                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
+        }
     }
 }
 
