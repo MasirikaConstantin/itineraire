@@ -19,6 +19,7 @@ class AppViewModelFactory(private val container: AppContainer) : ViewModelProvid
                     journeyId = journeyId,
                     journeyRepository = container.journeyRepository,
                     placeRepository = container.placeRepository,
+                    journeyNotificationManager = container.journeyNotificationManager,
                 ) as T
             }
         }

@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
 
     <application
         android:name=".ItineraireApplication"
@@ -37,6 +39,9 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/journey_widget_info" />
         </receiver>
+        <receiver
+            android:name=".ui.notification.JourneyNotificationReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

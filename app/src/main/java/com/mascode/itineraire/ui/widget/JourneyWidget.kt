@@ -79,6 +79,7 @@ class AdvanceJourneyAction : ActionCallback {
             container.journeyRepository.finishActiveLegAndStartNext(journeyId)
         }
         JourneyWidget().updateAll(context)
+        container.journeyNotificationManager.synchronize()
         withContext(Dispatchers.Main) {
             Toast.makeText(
                 context,

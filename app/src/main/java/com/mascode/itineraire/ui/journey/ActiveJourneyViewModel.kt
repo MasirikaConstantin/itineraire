@@ -12,6 +12,7 @@ import com.mascode.itineraire.data.repository.PlaceRepository
 import com.mascode.itineraire.domain.geo.haversineDistanceMeters
 import com.mascode.itineraire.domain.model.ObservationType
 import com.mascode.itineraire.domain.model.TransportMode
+import com.mascode.itineraire.ui.notification.JourneyNotificationManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -80,6 +81,7 @@ class ActiveJourneyViewModel(
     val journeyId: String,
     private val journeyRepository: JourneyRepository,
     placeRepository: PlaceRepository,
+    private val journeyNotificationManager: JourneyNotificationManager,
 ) : ViewModel() {
     private val errorMessage = MutableStateFlow<String?>(null)
 
@@ -140,7 +142,10 @@ class ActiveJourneyViewModel(
     fun reorderPlannedLeg(fromIndex: Int, toIndex: Int, onReordered: () -> Unit) {
         viewModelScope.launch {
             runCatching { journeyRepository.reorderPlannedLeg(journeyId, fromIndex, toIndex) }
-                .onSuccess { onReordered() }
+                .onSuccess {
+                    journeyNotificationManager.synchronize()
+                    onReordered()
+                }
                 .onFailure { error ->
                     errorMessage.value = error.message ?: "Impossible de réordonner les tronçons."
                 }
@@ -168,6 +173,7 @@ class ActiveJourneyViewModel(
     private fun runAction(fallbackMessage: String, action: suspend () -> Unit) {
         viewModelScope.launch {
             runCatching { action() }
+                .onSuccess { journeyNotificationManager.synchronize() }
                 .onFailure { error -> errorMessage.value = error.message ?: fallbackMessage }
         }
     }
