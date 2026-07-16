@@ -159,6 +159,8 @@ Les tronçons sont facultatifs. Un déplacement simple peut être terminé direc
 
 Pendant la préparation, l'utilisateur peut définir une suite continue de tronçons avec leurs lieux et modes de transport. Ces étapes sont enregistrées comme des tronçons prévus, sans fabriquer d'horaires. Dans le trajet en cours, **Commencer ce tronçon** transforme l'étape suivante en tronçon réel et enregistre seulement à cet instant son heure de départ. Retirer une étape prévue retire également les suivantes afin de ne pas conserver un itinéraire discontinu.
 
+Les étapes intermédiaires encore prévues peuvent être réordonnées par un appui long suivi d'un glissement vertical. Après le déplacement, leurs points de départ sont recalculés pour conserver un parcours continu et un message Android confirme l'enregistrement. Le dernier tronçon reste verrouillé, car son arrivée doit correspondre à la destination finale du trajet.
+
 ## Événements et actions rapides
 
 Un événement est une information enregistrée dans la journée avec une heure précise. Sa création détaillée permet de choisir son type, un lieu et une note facultatifs. Les événements Réveil et Sortie de la maison disposent également de raccourcis fixes sur l'accueil.
