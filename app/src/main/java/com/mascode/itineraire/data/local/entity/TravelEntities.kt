@@ -144,6 +144,7 @@ data class JourneyLegEntity(
     val startedAt: Instant,
     val endedAt: Instant? = null,
     val cost: Long = 0,
+    val costPending: Boolean = false,
     val currency: String = "CDF",
     val distanceMeters: Long? = null,
     val notes: String? = null,

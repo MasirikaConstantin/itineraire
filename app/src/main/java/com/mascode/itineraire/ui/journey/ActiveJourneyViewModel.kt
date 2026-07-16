@@ -119,6 +119,12 @@ class ActiveJourneyViewModel(
         }
     }
 
+    fun completeLegCost(legId: String, cost: Long) {
+        runAction("Impossible d'enregistrer le prix.") {
+            journeyRepository.completeLegCost(legId, cost)
+        }
+    }
+
     fun startPlannedLeg(plannedLegId: String) {
         runAction("Impossible de commencer ce tronçon prévu.") {
             journeyRepository.startPlannedLeg(journeyId, plannedLegId)

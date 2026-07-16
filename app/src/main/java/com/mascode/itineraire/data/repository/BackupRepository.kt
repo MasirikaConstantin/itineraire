@@ -138,7 +138,7 @@ class BackupRepository(
 
     private companion object {
         const val BACKUP_FORMAT = "com.mascode.itineraire.backup"
-        const val BACKUP_VERSION = 2
+        const val BACKUP_VERSION = 3
         val SUPPORTED_BACKUP_VERSIONS = 1..BACKUP_VERSION
 
         val TABLES = listOf(

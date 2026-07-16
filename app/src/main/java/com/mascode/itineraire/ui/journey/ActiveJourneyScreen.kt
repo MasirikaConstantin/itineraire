@@ -97,6 +97,7 @@ fun ActiveJourneyScreen(
     val journey = state.journey
     var showStartLegDialog by remember { mutableStateOf(false) }
     var legToFinish by remember { mutableStateOf<JourneyLegEntity?>(null) }
+    var legCostToComplete by remember { mutableStateOf<JourneyLegEntity?>(null) }
     var showObservationDialog by remember { mutableStateOf(false) }
     var showFinishConfirmation by remember { mutableStateOf(false) }
     var showCancelConfirmation by remember { mutableStateOf(false) }
@@ -263,7 +264,12 @@ fun ActiveJourneyScreen(
                 if (state.legs.isNotEmpty()) {
                     item { Text("Tronçons effectués", style = MaterialTheme.typography.titleLarge) }
                     items(state.legs, key = { it.id }) { leg ->
-                        LegCard(leg = leg, places = state.places, now = currentTime)
+                        LegCard(
+                            leg = leg,
+                            places = state.places,
+                            now = currentTime,
+                            onCompleteCost = { legCostToComplete = leg },
+                        )
                     }
                 }
 
@@ -336,6 +342,16 @@ fun ActiveJourneyScreen(
             onConfirm = { cost, notes ->
                 viewModel.finishLeg(leg.id, cost, notes)
                 legToFinish = null
+            },
+        )
+    }
+
+    legCostToComplete?.let { leg ->
+        CompleteCostDialog(
+            onDismiss = { legCostToComplete = null },
+            onConfirm = { cost ->
+                viewModel.completeLegCost(leg.id, cost)
+                legCostToComplete = null
             },
         )
     }
@@ -536,7 +552,12 @@ private fun ActiveLegCard(
 }
 
 @Composable
-private fun LegCard(leg: JourneyLegEntity, places: List<PlaceEntity>, now: Instant) {
+private fun LegCard(
+    leg: JourneyLegEntity,
+    places: List<PlaceEntity>,
+    now: Instant,
+    onCompleteCost: () -> Unit,
+) {
     val end = leg.endedAt ?: now
     Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -547,7 +568,15 @@ private fun LegCard(leg: JourneyLegEntity, places: List<PlaceEntity>, now: Insta
             }
             Text("${transportLabel(leg.transportMode)} · ${formatDuration(Duration.between(leg.startedAt, end))}")
             Text("${formatTime(leg.startedAt)} → ${leg.endedAt?.let(::formatTime) ?: "en cours"}")
-            if (leg.endedAt != null) Text(formatCost(leg.cost), style = MaterialTheme.typography.titleSmall)
+            if (leg.endedAt != null) {
+                if (leg.costPending) {
+                    OutlinedButton(onClick = onCompleteCost, modifier = Modifier.fillMaxWidth()) {
+                        Text("Prix à compléter")
+                    }
+                } else {
+                    Text(formatCost(leg.cost), style = MaterialTheme.typography.titleSmall)
+                }
+            }
             leg.notes?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
         }
     }
@@ -744,6 +773,32 @@ private fun FinishLegDialog(onDismiss: () -> Unit, onConfirm: (Long, String?) ->
         confirmButton = {
             TextButton(onClick = { cost?.let { onConfirm(it, notes) } }, enabled = cost != null) {
                 Text("Terminer")
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Annuler") } },
+    )
+}
+
+@Composable
+private fun CompleteCostDialog(onDismiss: () -> Unit, onConfirm: (Long) -> Unit) {
+    var costText by remember { mutableStateOf("") }
+    val cost = costText.toLongOrNull()
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Compléter le prix") },
+        text = {
+            OutlinedTextField(
+                value = costText,
+                onValueChange = { value -> costText = value.filter(Char::isDigit) },
+                label = { Text("Prix payé") },
+                suffix = { Text("CDF") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { cost?.let(onConfirm) }, enabled = cost != null) {
+                Text("Enregistrer")
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Annuler") } },

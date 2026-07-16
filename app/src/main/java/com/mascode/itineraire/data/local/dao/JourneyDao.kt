@@ -23,6 +23,9 @@ interface JourneyDao {
     @Query("SELECT * FROM journeys ORDER BY startedAt DESC")
     fun observeAll(): Flow<List<JourneyEntity>>
 
+    @Query("SELECT * FROM journeys WHERE status = 'IN_PROGRESS' ORDER BY startedAt DESC LIMIT 1")
+    suspend fun findActiveJourney(): JourneyEntity?
+
     @Insert
     suspend fun insert(journey: JourneyEntity)
 
@@ -102,10 +105,39 @@ interface JourneyDao {
 
     @Query(
         """UPDATE journey_legs
+           SET endedAt = :endedAt, cost = 0, costPending = 1, updatedAt = :endedAt
+           WHERE id = :legId AND endedAt IS NULL""",
+    )
+    suspend fun finishLegWithPendingCost(legId: String, endedAt: Instant): Int
+
+    @Query(
+        """UPDATE journey_legs
+           SET cost = :cost, costPending = 0, updatedAt = :updatedAt
+           WHERE id = :legId AND endedAt IS NOT NULL""",
+    )
+    suspend fun completeLegCost(legId: String, cost: Long, updatedAt: Instant): Int
+
+    @Query(
+        """UPDATE journey_legs
            SET endedAt = :endedAt, updatedAt = :endedAt
            WHERE journeyId = :journeyId AND endedAt IS NULL""",
     )
     suspend fun closeActiveLeg(journeyId: String, endedAt: Instant)
+
+    @Transaction
+    suspend fun finishActiveAndStartNext(
+        activeLegId: String,
+        endedAt: Instant,
+        plannedLegId: String?,
+        nextLeg: JourneyLegEntity?,
+    ): Boolean {
+        if (finishLegWithPendingCost(activeLegId, endedAt) == 0) return false
+        if (plannedLegId != null && nextLeg != null) {
+            insertLeg(nextLeg)
+            if (deletePlannedLeg(plannedLegId) == 0) error("Le prochain tronçon prévu est introuvable.")
+        }
+        return true
+    }
 
     @Insert
     suspend fun insertObservation(observation: JourneyObservationEntity)

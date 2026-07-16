@@ -34,7 +34,7 @@ import com.mascode.itineraire.data.local.entity.PlannedJourneyLegEntity
         QuickActionEntity::class,
         PlannedJourneyLegEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)

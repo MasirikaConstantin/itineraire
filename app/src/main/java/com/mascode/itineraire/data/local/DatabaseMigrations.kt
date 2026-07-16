@@ -95,4 +95,12 @@ object DatabaseMigrations {
             )
         }
     }
+
+    val MIGRATION_5_6 = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE `journey_legs` ADD COLUMN `costPending` INTEGER NOT NULL DEFAULT 0",
+            )
+        }
+    }
 }

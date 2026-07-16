@@ -11,6 +11,11 @@ import com.mascode.itineraire.domain.model.TransportMode
 import java.time.Instant
 
 class JourneyRepository(private val journeyDao: JourneyDao) {
+    data class WidgetJourneyData(
+        val journey: JourneyEntity,
+        val activeLeg: JourneyLegEntity?,
+        val nextPlannedLeg: PlannedJourneyLegEntity?,
+    )
     data class PlannedLegInput(
         val sourcePlaceId: String,
         val destinationPlaceId: String,
@@ -27,6 +32,15 @@ class JourneyRepository(private val journeyDao: JourneyDao) {
     fun observeObservations(journeyId: String) = journeyDao.observeObservations(journeyId)
 
     fun observePlannedLegs(journeyId: String) = journeyDao.observePlannedLegs(journeyId)
+
+    suspend fun getWidgetJourneyData(): WidgetJourneyData? {
+        val journey = journeyDao.findActiveJourney() ?: return null
+        return WidgetJourneyData(
+            journey = journey,
+            activeLeg = journeyDao.findActiveLeg(journey.id),
+            nextPlannedLeg = journeyDao.findNextPlannedLeg(journey.id),
+        )
+    }
 
     suspend fun start(
         dayId: String,
@@ -140,6 +154,37 @@ class JourneyRepository(private val journeyDao: JourneyDao) {
                 notes = notes?.trim()?.takeIf(String::isNotEmpty),
             ) > 0,
         ) { "Ce tronçon est déjà terminé." }
+    }
+
+    suspend fun completeLegCost(legId: String, cost: Long) {
+        require(cost >= 0) { "Le prix ne peut pas être négatif." }
+        check(journeyDao.completeLegCost(legId, cost, Instant.now()) > 0) {
+            "Ce tronçon est introuvable ou n'est pas terminé."
+        }
+    }
+
+    suspend fun finishActiveLegAndStartNext(journeyId: String) {
+        val activeLeg = journeyDao.findActiveLeg(journeyId) ?: error("Aucun tronçon n'est en cours.")
+        val nextPlanned = journeyDao.findNextPlannedLeg(journeyId)
+        val now = Instant.now()
+        val nextLeg = nextPlanned?.let { planned ->
+            JourneyLegEntity(
+                journeyId = journeyId,
+                position = journeyDao.nextLegPosition(journeyId),
+                sourcePlaceId = planned.sourcePlaceId,
+                destinationPlaceId = planned.destinationPlaceId,
+                transportMode = planned.transportMode,
+                startedAt = now,
+            )
+        }
+        check(
+            journeyDao.finishActiveAndStartNext(
+                activeLegId = activeLeg.id,
+                endedAt = now,
+                plannedLegId = nextPlanned?.id,
+                nextLeg = nextLeg,
+            ),
+        ) { "Le tronçon actif est déjà terminé." }
     }
 
     suspend fun addObservation(
