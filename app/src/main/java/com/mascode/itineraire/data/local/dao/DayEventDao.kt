@@ -13,6 +13,9 @@ interface DayEventDao {
     @Query("SELECT * FROM day_events WHERE dayId = :dayId ORDER BY occurredAt DESC")
     fun observeForDay(dayId: String): Flow<List<DayEventEntity>>
 
+    @Query("SELECT * FROM day_events WHERE id = :eventId LIMIT 1")
+    suspend fun findById(eventId: String): DayEventEntity?
+
     @Insert
     suspend fun insert(event: DayEventEntity)
 

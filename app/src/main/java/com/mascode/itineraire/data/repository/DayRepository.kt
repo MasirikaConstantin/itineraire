@@ -39,4 +39,29 @@ class DayRepository(
             ),
         )
     }
+
+    suspend fun updateEvent(
+        eventId: String,
+        type: DayEventType,
+        occurredAt: Instant,
+        placeId: String?,
+        notes: String?,
+    ) {
+        require(!occurredAt.isAfter(Instant.now())) { "L'heure de l'événement ne peut pas être future." }
+        val event = dayEventDao.findById(eventId) ?: error("Événement introuvable.")
+        dayEventDao.update(
+            event.copy(
+                type = type,
+                occurredAt = occurredAt,
+                placeId = placeId,
+                notes = notes?.trim()?.takeIf(String::isNotEmpty),
+                updatedAt = Instant.now(),
+            ),
+        )
+    }
+
+    suspend fun deleteEvent(eventId: String) {
+        val event = dayEventDao.findById(eventId) ?: error("Événement introuvable.")
+        dayEventDao.delete(event)
+    }
 }

@@ -31,6 +31,10 @@ class JourneyRepository(private val journeyDao: JourneyDao) {
 
     fun observeIncompleteLegs() = journeyDao.observeIncompleteLegs()
 
+    fun observeFinishedLegs() = journeyDao.observeFinishedLegs()
+
+    fun observeLeg(legId: String) = journeyDao.observeLeg(legId)
+
     fun observeObservations(journeyId: String) = journeyDao.observeObservations(journeyId)
 
     fun observePlannedLegs(journeyId: String) = journeyDao.observePlannedLegs(journeyId)
@@ -197,6 +201,55 @@ class JourneyRepository(private val journeyDao: JourneyDao) {
                 updatedAt = Instant.now(),
             ),
         )
+    }
+
+    suspend fun updateFinishedJourney(
+        journeyId: String,
+        sourcePlaceId: String,
+        destinationPlaceId: String,
+        startedAt: Instant,
+        endedAt: Instant,
+        notes: String?,
+    ) {
+        require(sourcePlaceId != destinationPlaceId) { "La source et la destination doivent être différentes." }
+        require(!endedAt.isBefore(startedAt)) { "L'arrivée doit suivre le départ." }
+        val journey = journeyDao.findById(journeyId) ?: error("Trajet introuvable.")
+        check(journey.status != JourneyStatus.IN_PROGRESS) { "Un trajet en cours ne peut pas être modifié ici." }
+        journeyDao.updateJourney(
+            journey.copy(
+                sourcePlaceId = sourcePlaceId,
+                destinationPlaceId = destinationPlaceId,
+                startedAt = startedAt,
+                endedAt = endedAt,
+                notes = notes?.trim()?.takeIf(String::isNotEmpty),
+                updatedAt = Instant.now(),
+            ),
+        )
+    }
+
+    suspend fun deleteFinishedJourney(journeyId: String) {
+        val journey = journeyDao.findById(journeyId) ?: error("Trajet introuvable.")
+        check(journey.status != JourneyStatus.IN_PROGRESS) { "Un trajet en cours ne peut pas être supprimé." }
+        journeyDao.deleteJourney(journey)
+    }
+
+    suspend fun updateFinishedLeg(
+        legId: String,
+        sourcePlaceId: String?,
+        destinationPlaceId: String?,
+        transportMode: TransportMode,
+        startedAt: Instant,
+        endedAt: Instant,
+        cost: Long,
+        notes: String?,
+    ) = completeLegDetails(
+        legId, sourcePlaceId, destinationPlaceId, transportMode, startedAt, endedAt, cost, notes,
+    )
+
+    suspend fun deleteFinishedLeg(legId: String) {
+        val leg = journeyDao.findLeg(legId) ?: error("Ce tronçon est introuvable.")
+        check(leg.endedAt != null) { "Un tronçon en cours ne peut pas être supprimé." }
+        journeyDao.deleteLeg(leg)
     }
 
     suspend fun finishActiveLegAndStartNext(journeyId: String) {

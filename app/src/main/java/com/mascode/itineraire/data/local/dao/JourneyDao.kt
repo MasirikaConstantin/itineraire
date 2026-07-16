@@ -1,6 +1,7 @@
 package com.mascode.itineraire.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
@@ -18,6 +19,9 @@ interface JourneyDao {
     @Query("SELECT * FROM journeys WHERE id = :journeyId LIMIT 1")
     fun observeById(journeyId: String): Flow<JourneyEntity?>
 
+    @Query("SELECT * FROM journeys WHERE id = :journeyId LIMIT 1")
+    suspend fun findById(journeyId: String): JourneyEntity?
+
     @Query("SELECT * FROM journeys WHERE dayId = :dayId ORDER BY startedAt DESC")
     fun observeForDay(dayId: String): Flow<List<JourneyEntity>>
 
@@ -29,6 +33,12 @@ interface JourneyDao {
 
     @Insert
     suspend fun insert(journey: JourneyEntity)
+
+    @Update
+    suspend fun updateJourney(journey: JourneyEntity)
+
+    @Delete
+    suspend fun deleteJourney(journey: JourneyEntity)
 
     @Insert
     suspend fun insertPlannedLegs(legs: List<PlannedJourneyLegEntity>)
@@ -94,11 +104,20 @@ interface JourneyDao {
     @Query("SELECT * FROM journey_legs WHERE endedAt IS NOT NULL AND costPending = 1 ORDER BY endedAt DESC")
     fun observeIncompleteLegs(): Flow<List<JourneyLegEntity>>
 
+    @Query("SELECT * FROM journey_legs WHERE endedAt IS NOT NULL ORDER BY endedAt DESC")
+    fun observeFinishedLegs(): Flow<List<JourneyLegEntity>>
+
     @Query("SELECT * FROM journey_legs WHERE id = :legId LIMIT 1")
     suspend fun findLeg(legId: String): JourneyLegEntity?
 
+    @Query("SELECT * FROM journey_legs WHERE id = :legId LIMIT 1")
+    fun observeLeg(legId: String): Flow<JourneyLegEntity?>
+
     @Update
     suspend fun updateLeg(leg: JourneyLegEntity)
+
+    @Delete
+    suspend fun deleteLeg(leg: JourneyLegEntity)
 
     @Query("SELECT * FROM journey_legs WHERE journeyId = :journeyId AND endedAt IS NULL LIMIT 1")
     suspend fun findActiveLeg(journeyId: String): JourneyLegEntity?
