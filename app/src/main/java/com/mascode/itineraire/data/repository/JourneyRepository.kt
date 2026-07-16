@@ -29,6 +29,8 @@ class JourneyRepository(private val journeyDao: JourneyDao) {
 
     fun observeLegs(journeyId: String) = journeyDao.observeLegs(journeyId)
 
+    fun observeIncompleteLegs() = journeyDao.observeIncompleteLegs()
+
     fun observeObservations(journeyId: String) = journeyDao.observeObservations(journeyId)
 
     fun observePlannedLegs(journeyId: String) = journeyDao.observePlannedLegs(journeyId)
@@ -161,6 +163,40 @@ class JourneyRepository(private val journeyDao: JourneyDao) {
         check(journeyDao.completeLegCost(legId, cost, Instant.now()) > 0) {
             "Ce tronçon est introuvable ou n'est pas terminé."
         }
+    }
+
+    suspend fun completeLegDetails(
+        legId: String,
+        sourcePlaceId: String?,
+        destinationPlaceId: String?,
+        transportMode: TransportMode,
+        startedAt: Instant,
+        endedAt: Instant,
+        cost: Long,
+        notes: String?,
+    ) {
+        require(sourcePlaceId == null || sourcePlaceId != destinationPlaceId) {
+            "Le départ et l'arrivée du tronçon doivent être différents."
+        }
+        require(!endedAt.isBefore(startedAt)) {
+            "L'heure d'arrivée doit suivre l'heure de départ."
+        }
+        require(cost >= 0) { "Le prix ne peut pas être négatif." }
+        val leg = journeyDao.findLeg(legId) ?: error("Ce tronçon est introuvable.")
+        check(leg.endedAt != null) { "Ce tronçon n'est pas encore terminé." }
+        journeyDao.updateLeg(
+            leg.copy(
+                sourcePlaceId = sourcePlaceId,
+                destinationPlaceId = destinationPlaceId,
+                transportMode = transportMode,
+                startedAt = startedAt,
+                endedAt = endedAt,
+                cost = cost,
+                costPending = false,
+                notes = notes?.trim()?.takeIf(String::isNotEmpty),
+                updatedAt = Instant.now(),
+            ),
+        )
     }
 
     suspend fun finishActiveLegAndStartNext(journeyId: String) {

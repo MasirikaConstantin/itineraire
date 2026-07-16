@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import com.mascode.itineraire.data.local.entity.JourneyEntity
 import com.mascode.itineraire.data.local.entity.JourneyLegEntity
 import com.mascode.itineraire.data.local.entity.JourneyObservationEntity
@@ -89,6 +90,15 @@ interface JourneyDao {
 
     @Query("SELECT * FROM journey_legs WHERE journeyId = :journeyId ORDER BY position")
     fun observeLegs(journeyId: String): Flow<List<JourneyLegEntity>>
+
+    @Query("SELECT * FROM journey_legs WHERE endedAt IS NOT NULL AND costPending = 1 ORDER BY endedAt DESC")
+    fun observeIncompleteLegs(): Flow<List<JourneyLegEntity>>
+
+    @Query("SELECT * FROM journey_legs WHERE id = :legId LIMIT 1")
+    suspend fun findLeg(legId: String): JourneyLegEntity?
+
+    @Update
+    suspend fun updateLeg(leg: JourneyLegEntity)
 
     @Query("SELECT * FROM journey_legs WHERE journeyId = :journeyId AND endedAt IS NULL LIMIT 1")
     suspend fun findActiveLeg(journeyId: String): JourneyLegEntity?
