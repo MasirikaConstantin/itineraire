@@ -30,7 +30,6 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
         topBar = {
             TopAppBar(
                 title = { Text("Politique de confidentialité") },
-                windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(

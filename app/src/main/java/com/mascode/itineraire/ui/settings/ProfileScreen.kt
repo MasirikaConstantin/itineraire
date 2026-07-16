@@ -53,7 +53,6 @@ fun ProfileScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Profil local") },
-                windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Retour")

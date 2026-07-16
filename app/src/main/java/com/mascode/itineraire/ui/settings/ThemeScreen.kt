@@ -41,7 +41,6 @@ fun ThemeScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Apparence") },
-                windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
