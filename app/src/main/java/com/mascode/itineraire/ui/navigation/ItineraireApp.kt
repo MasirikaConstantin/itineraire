@@ -51,6 +51,8 @@ import com.mascode.itineraire.ui.settings.PrivacyPolicyScreen
 import com.mascode.itineraire.ui.settings.SecurityScreen
 import com.mascode.itineraire.ui.settings.SettingsScreen
 import com.mascode.itineraire.ui.settings.ThemeScreen
+import com.mascode.itineraire.ui.settings.BackupScreen
+import com.mascode.itineraire.ui.settings.BackupViewModel
 import com.mascode.itineraire.ui.today.TodayScreen
 import com.mascode.itineraire.ui.today.TodayViewModel
 import com.mascode.itineraire.ui.today.AddEventScreen
@@ -75,6 +77,7 @@ private const val PROFILE_ROUTE = "settings/profile"
 private const val SECURITY_ROUTE = "settings/security"
 private const val THEME_ROUTE = "settings/theme"
 private const val PRIVACY_POLICY_ROUTE = "settings/privacy-policy"
+private const val BACKUP_ROUTE = "settings/backup"
 
 @Composable
 fun ItineraireApp(
@@ -224,6 +227,7 @@ private fun MainNavigation(
                             },
                             themeMode = themeMode,
                             onOpenTheme = { navController.navigate(THEME_ROUTE) },
+                            onOpenBackup = { navController.navigate(BACKUP_ROUTE) },
                             onOpenPrivacyPolicy = { navController.navigate(PRIVACY_POLICY_ROUTE) },
                         )
                     }
@@ -318,6 +322,10 @@ private fun MainNavigation(
             }
             composable(PRIVACY_POLICY_ROUTE) {
                 PrivacyPolicyScreen(onBack = navController::popBackStack)
+            }
+            composable(BACKUP_ROUTE) {
+                val viewModel: BackupViewModel = viewModel(factory = factory)
+                BackupScreen(viewModel = viewModel, onBack = navController::popBackStack)
             }
         }
     }

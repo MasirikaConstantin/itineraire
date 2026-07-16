@@ -40,6 +40,7 @@ fun SettingsScreen(
     onOpenProfile: () -> Unit,
     onOpenSecurity: () -> Unit,
     onOpenTheme: () -> Unit,
+    onOpenBackup: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -105,7 +106,8 @@ fun SettingsScreen(
                 SettingsRow(
                     icon = Icons.Outlined.Backup,
                     title = "Sauvegarde et restauration",
-                    description = "Fonctionnalité à venir",
+                    description = "Exporter ou restaurer toutes les données",
+                    onClick = onOpenBackup,
                 )
             }
         }
@@ -116,7 +118,7 @@ fun SettingsScreen(
                 SettingsRow(
                     icon = Icons.Outlined.Info,
                     title = "Itinéraire",
-                    description = "Version 1.0",
+                    description = "Version 1.2.0",
                 )
                 HorizontalDivider(Modifier.padding(horizontal = 16.dp))
                 SettingsRow(

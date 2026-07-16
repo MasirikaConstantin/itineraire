@@ -7,6 +7,7 @@ import com.mascode.itineraire.ui.history.HistoryViewModel
 import com.mascode.itineraire.ui.journey.ActiveJourneyViewModel
 import com.mascode.itineraire.ui.places.PlacesViewModel
 import com.mascode.itineraire.ui.today.TodayViewModel
+import com.mascode.itineraire.ui.settings.BackupViewModel
 
 class AppViewModelFactory(private val container: AppContainer) : ViewModelProvider.Factory {
     fun activeJourneyFactory(journeyId: String): ViewModelProvider.Factory =
@@ -45,6 +46,9 @@ class AppViewModelFactory(private val container: AppContainer) : ViewModelProvid
             container.journeyRepository,
             container.placeRepository,
         ) as T
+
+        modelClass.isAssignableFrom(BackupViewModel::class.java) ->
+            BackupViewModel(container.backupRepository) as T
 
         else -> error("ViewModel inconnu : ${modelClass.name}")
     }
