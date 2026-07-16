@@ -138,6 +138,7 @@ La version actuelle `1.3.0` permet de :
 - afficher le trajet en cours dans un widget Android et passer au tronçon suivant sans ouvrir l'application ;
 - signaler les embouteillages, attentes, pannes, problèmes météo et autres observations ;
 - consulter le résumé détaillé et le coût total d'un trajet depuis l'historique ;
+- parcourir un historique regroupé par journée, filtrer les trajets par état et consulter une synthèse globale ;
 - consulter dans le résumé la distance Haversine estimée lorsque les lieux possèdent une position ;
 - consulter un premier écran de paramètres ;
 - choisir un thème clair, sombre ou synchronisé avec celui du téléphone ;
@@ -175,6 +176,12 @@ Si le verrou biométrique est activé, le widget masque les lieux et désactive 
 Un événement est une information enregistrée dans la journée avec une heure précise. Sa création détaillée permet de choisir son type, un lieu et une note facultatifs. Les événements Réveil et Sortie de la maison disposent également de raccourcis fixes sur l'accueil.
 
 L'utilisateur peut ajouter ses propres actions rapides depuis **Accueil → Gérer les actions rapides**. Une action possède un libellé, un type d'événement, un lieu et une note facultatifs. Un appui sur son bouton enregistre immédiatement l'événement à l'heure actuelle. Les actions personnalisées sont conservées dans Room et peuvent être supprimées depuis leur page de gestion.
+
+## Historique des trajets
+
+L'historique présente une synthèse du nombre de trajets, des trajets terminés et du temps total des déplacements achevés. Les filtres **Tous**, **Terminés**, **En cours** et **Annulés** permettent de retrouver rapidement un déplacement selon son état.
+
+Les trajets sont regroupés par journée et affichent leur itinéraire, leur heure de départ, leur statut, leur durée et leur heure d'arrivée lorsqu'elles sont disponibles. Un appui sur une carte ouvre le détail complet du trajet sans modifier les données enregistrées.
 
 ## Sauvegarde et restauration
 
