@@ -25,19 +25,28 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -55,13 +64,15 @@ import com.mascode.itineraire.data.local.entity.PlaceEntity
 import com.mascode.itineraire.domain.model.TransportMode
 import java.time.Duration
 import java.time.Instant
-import java.time.LocalDateTime
+import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 import java.util.Locale
 
 private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm", Locale.FRENCH)
+
+private enum class DateTimeTarget { START, END }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -281,21 +292,22 @@ private fun CompleteLegForm(
     var sourceId by rememberSaveable(leg.id) { mutableStateOf(leg.sourcePlaceId) }
     var destinationId by rememberSaveable(leg.id) { mutableStateOf(leg.destinationPlaceId) }
     var transportMode by rememberSaveable(leg.id) { mutableStateOf(leg.transportMode) }
-    var startText by rememberSaveable(leg.id) {
-        mutableStateOf(leg.startedAt.atZone(zone).format(dateTimeFormatter))
+    var startMillis by rememberSaveable(leg.id) {
+        mutableLongStateOf(leg.startedAt.toEpochMilli())
     }
-    var endText by rememberSaveable(leg.id) {
-        mutableStateOf(initialEnd.atZone(zone).format(dateTimeFormatter))
+    var endMillis by rememberSaveable(leg.id) {
+        mutableLongStateOf(initialEnd.toEpochMilli())
     }
     var costText by rememberSaveable(leg.id) { mutableStateOf(leg.cost.takeIf { it > 0 }?.toString().orEmpty()) }
     var notes by rememberSaveable(leg.id) { mutableStateOf(leg.notes.orEmpty()) }
-    val start = startText.toInstantOrNull(zone)
-    val end = endText.toInstantOrNull(zone)
+    val start = Instant.ofEpochMilli(startMillis)
+    val end = Instant.ofEpochMilli(endMillis)
     val cost = costText.toLongOrNull()
-    val chronological = start != null && end != null && !end.isBefore(start)
+    val chronological = !end.isBefore(start)
     val placesDiffer = sourceId == null || sourceId != destinationId
     val canSave = cost != null && chronological && placesDiffer && !state.isSaving
     val costFocusRequester = remember { FocusRequester() }
+    var dateTimeTarget by remember { mutableStateOf<DateTimeTarget?>(null) }
 
     LaunchedEffect(leg.id) { costFocusRequester.requestFocus() }
 
@@ -354,35 +366,35 @@ private fun CompleteLegForm(
         item {
             Text("Horaires", style = MaterialTheme.typography.titleMedium)
             Text(
-                "Format : jour/mois/année heure:minute",
+                "Touchez un horaire pour choisir la date puis l'heure.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         item {
-            OutlinedTextField(
-                value = startText,
-                onValueChange = { startText = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Départ") },
-                leadingIcon = { Icon(Icons.Outlined.Schedule, contentDescription = null) },
-                singleLine = true,
-                isError = start == null,
+            DateTimeSelector(
+                label = "Départ",
+                instant = start,
+                zone = zone,
+                onClick = { dateTimeTarget = DateTimeTarget.START },
             )
         }
         item {
-            OutlinedTextField(
-                value = endText,
-                onValueChange = { endText = it },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Arrivée") },
-                leadingIcon = { Icon(Icons.Outlined.Schedule, contentDescription = null) },
-                singleLine = true,
-                isError = end == null || !chronological,
-                supportingText = {
-                    if (!chronological) Text("L'arrivée doit suivre le départ.")
-                },
+            DateTimeSelector(
+                label = "Arrivée",
+                instant = end,
+                zone = zone,
+                onClick = { dateTimeTarget = DateTimeTarget.END },
             )
+        }
+        if (!chronological) {
+            item {
+                Text(
+                    "L'arrivée doit suivre le départ.",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
         }
         item {
             OutlinedTextField(
@@ -401,7 +413,7 @@ private fun CompleteLegForm(
         }
         item {
             Button(
-                onClick = { onSave(sourceId, destinationId, transportMode, start!!, end!!, cost!!, notes) },
+                onClick = { onSave(sourceId, destinationId, transportMode, start, end, cost!!, notes) },
                 enabled = canSave,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
             ) {
@@ -413,6 +425,117 @@ private fun CompleteLegForm(
             }
         }
         item { Spacer(Modifier.height(24.dp)) }
+    }
+
+    dateTimeTarget?.let { target ->
+        val currentInstant = if (target == DateTimeTarget.START) start else end
+        DateTimePickerDialog(
+            initialInstant = currentInstant,
+            zone = zone,
+            onDismiss = { dateTimeTarget = null },
+            onConfirm = { selected ->
+                if (target == DateTimeTarget.START) {
+                    startMillis = selected.toEpochMilli()
+                } else {
+                    endMillis = selected.toEpochMilli()
+                }
+                dateTimeTarget = null
+            },
+        )
+    }
+}
+
+@Composable
+private fun DateTimeSelector(
+    label: String,
+    instant: Instant,
+    zone: ZoneId,
+    onClick: () -> Unit,
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().height(58.dp),
+    ) {
+        Icon(Icons.Outlined.Schedule, contentDescription = null)
+        Column(
+            modifier = Modifier.weight(1f).padding(start = 12.dp),
+            horizontalAlignment = Alignment.Start,
+        ) {
+            Text(label, style = MaterialTheme.typography.labelMedium)
+            Text(
+                instant.atZone(zone).format(dateTimeFormatter),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+        Text("Modifier", style = MaterialTheme.typography.labelLarge)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DateTimePickerDialog(
+    initialInstant: Instant,
+    zone: ZoneId,
+    onDismiss: () -> Unit,
+    onConfirm: (Instant) -> Unit,
+) {
+    val initialDateTime = remember(initialInstant, zone) { initialInstant.atZone(zone) }
+    var selectedDate by remember(initialInstant) { mutableStateOf<LocalDate?>(null) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = initialDateTime.toLocalDate()
+            .atStartOfDay(ZoneOffset.UTC)
+            .toInstant()
+            .toEpochMilli(),
+    )
+    val timePickerState = rememberTimePickerState(
+        initialHour = initialDateTime.hour,
+        initialMinute = initialDateTime.minute,
+        is24Hour = true,
+    )
+
+    if (selectedDate == null) {
+        DatePickerDialog(
+            onDismissRequest = onDismiss,
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        selectedDate = datePickerState.selectedDateMillis?.let { millis ->
+                            Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
+                        }
+                    },
+                    enabled = datePickerState.selectedDateMillis != null,
+                ) { Text("Choisir l'heure") }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) { Text("Annuler") }
+            },
+        ) {
+            DatePicker(
+                state = datePickerState,
+                title = { Text("Sélectionner la date", modifier = Modifier.padding(24.dp)) },
+            )
+        }
+    } else {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Sélectionner l'heure") },
+            text = { TimePicker(state = timePickerState) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val date = requireNotNull(selectedDate)
+                        onConfirm(
+                            date.atTime(timePickerState.hour, timePickerState.minute)
+                                .atZone(zone)
+                                .toInstant(),
+                        )
+                    },
+                ) { Text("Valider") }
+            },
+            dismissButton = {
+                TextButton(onClick = { selectedDate = null }) { Text("Retour") }
+            },
+        )
     }
 }
 
@@ -445,12 +568,6 @@ private fun PlaceSelector(
             }
         }
     }
-}
-
-private fun String.toInstantOrNull(zone: ZoneId): Instant? = try {
-    LocalDateTime.parse(trim(), dateTimeFormatter).atZone(zone).toInstant()
-} catch (_: DateTimeParseException) {
-    null
 }
 
 private fun transportLabel(mode: TransportMode): String = when (mode) {
