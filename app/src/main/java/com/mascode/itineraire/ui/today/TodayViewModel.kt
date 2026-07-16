@@ -11,6 +11,7 @@ import com.mascode.itineraire.data.repository.JourneyRepository
 import com.mascode.itineraire.data.repository.PlaceRepository
 import com.mascode.itineraire.data.repository.QuickActionRepository
 import com.mascode.itineraire.domain.model.DayEventType
+import com.mascode.itineraire.data.repository.JourneyRepository.PlannedLegInput
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -117,11 +118,12 @@ class TodayViewModel(
     fun startJourney(
         sourceId: String,
         destinationId: String,
+        plannedLegs: List<PlannedLegInput> = emptyList(),
         onStarted: (String) -> Unit = {},
     ) {
         val id = uiState.value.dayId ?: return
         viewModelScope.launch {
-            runCatching { journeyRepository.start(id, sourceId, destinationId) }
+            runCatching { journeyRepository.start(id, sourceId, destinationId, plannedLegs) }
                 .onSuccess(onStarted)
                 .onFailure { errorMessage.value = it.message ?: "Impossible de démarrer le trajet." }
         }

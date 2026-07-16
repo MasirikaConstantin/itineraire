@@ -6,6 +6,7 @@ import com.mascode.itineraire.data.local.entity.JourneyEntity
 import com.mascode.itineraire.data.local.entity.JourneyLegEntity
 import com.mascode.itineraire.data.local.entity.JourneyObservationEntity
 import com.mascode.itineraire.data.local.entity.PlaceEntity
+import com.mascode.itineraire.data.local.entity.PlannedJourneyLegEntity
 import com.mascode.itineraire.data.repository.JourneyRepository
 import com.mascode.itineraire.data.repository.PlaceRepository
 import com.mascode.itineraire.domain.geo.haversineDistanceMeters
@@ -23,6 +24,7 @@ data class ActiveJourneyUiState(
     val journey: JourneyEntity? = null,
     val legs: List<JourneyLegEntity> = emptyList(),
     val observations: List<JourneyObservationEntity> = emptyList(),
+    val plannedLegs: List<PlannedJourneyLegEntity> = emptyList(),
     val places: List<PlaceEntity> = emptyList(),
     val errorMessage: String? = null,
 ) {
@@ -81,7 +83,7 @@ class ActiveJourneyViewModel(
 ) : ViewModel() {
     private val errorMessage = MutableStateFlow<String?>(null)
 
-    val uiState: StateFlow<ActiveJourneyUiState> = combine(
+    private val journeyState = combine(
         journeyRepository.observeById(journeyId),
         journeyRepository.observeLegs(journeyId),
         journeyRepository.observeObservations(journeyId),
@@ -96,6 +98,13 @@ class ActiveJourneyViewModel(
             places = places,
             errorMessage = error,
         )
+    }
+
+    val uiState: StateFlow<ActiveJourneyUiState> = combine(
+        journeyState,
+        journeyRepository.observePlannedLegs(journeyId),
+    ) { state, plannedLegs ->
+        state.copy(plannedLegs = plannedLegs)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ActiveJourneyUiState())
 
     fun startLeg(sourcePlaceId: String?, destinationPlaceId: String?, transportMode: TransportMode) {
@@ -107,6 +116,18 @@ class ActiveJourneyViewModel(
     fun finishLeg(legId: String, cost: Long, notes: String?) {
         runAction("Impossible de terminer ce tronçon.") {
             journeyRepository.finishLeg(legId, cost, notes)
+        }
+    }
+
+    fun startPlannedLeg(plannedLegId: String) {
+        runAction("Impossible de commencer ce tronçon prévu.") {
+            journeyRepository.startPlannedLeg(journeyId, plannedLegId)
+        }
+    }
+
+    fun deletePlannedLeg(plannedLegId: String) {
+        runAction("Impossible de retirer ce tronçon prévu.") {
+            journeyRepository.deletePlannedLeg(plannedLegId)
         }
     }
 

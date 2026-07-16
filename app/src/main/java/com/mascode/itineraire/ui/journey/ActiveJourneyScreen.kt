@@ -50,6 +50,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mascode.itineraire.data.local.entity.JourneyLegEntity
 import com.mascode.itineraire.data.local.entity.JourneyObservationEntity
 import com.mascode.itineraire.data.local.entity.PlaceEntity
+import com.mascode.itineraire.data.local.entity.PlannedJourneyLegEntity
 import com.mascode.itineraire.domain.model.JourneyStatus
 import com.mascode.itineraire.domain.model.ObservationType
 import com.mascode.itineraire.domain.model.TransportMode
@@ -161,12 +162,22 @@ fun ActiveJourneyScreen(
                                 onFinish = { legToFinish = activeLeg },
                             )
                         }
-                    } ?: item {
-                        Button(
-                            onClick = { showStartLegDialog = true },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(if (state.legs.isEmpty()) "Démarrer le premier tronçon" else "Ajouter un tronçon")
+                    } ?: run {
+                        if (state.plannedLegs.isEmpty()) {
+                            item {
+                                Button(
+                                    onClick = { showStartLegDialog = true },
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    Text(
+                                        if (state.legs.isEmpty()) {
+                                            "Démarrer un tronçon"
+                                        } else {
+                                            "Ajouter un tronçon"
+                                        },
+                                    )
+                                }
+                            }
                         }
                     }
 
@@ -180,8 +191,23 @@ fun ActiveJourneyScreen(
                     }
                 }
 
+                if (state.plannedLegs.isNotEmpty()) {
+                    item { Text("Tronçons prévus", style = MaterialTheme.typography.titleLarge) }
+                    items(state.plannedLegs, key = { it.id }) { plannedLeg ->
+                        PlannedLegCard(
+                            leg = plannedLeg,
+                            places = state.places,
+                            canStart = journey.status == JourneyStatus.IN_PROGRESS &&
+                                state.activeLeg == null &&
+                                plannedLeg.id == state.plannedLegs.first().id,
+                            onStart = { viewModel.startPlannedLeg(plannedLeg.id) },
+                            onDelete = { viewModel.deletePlannedLeg(plannedLeg.id) },
+                        )
+                    }
+                }
+
                 if (state.legs.isNotEmpty()) {
-                    item { Text("Tronçons", style = MaterialTheme.typography.titleLarge) }
+                    item { Text("Tronçons effectués", style = MaterialTheme.typography.titleLarge) }
                     items(state.legs, key = { it.id }) { leg ->
                         LegCard(leg = leg, places = state.places, now = currentTime)
                     }
@@ -358,6 +384,35 @@ private fun LegCard(leg: JourneyLegEntity, places: List<PlaceEntity>, now: Insta
             Text("${formatTime(leg.startedAt)} → ${leg.endedAt?.let(::formatTime) ?: "en cours"}")
             if (leg.endedAt != null) Text(formatCost(leg.cost), style = MaterialTheme.typography.titleSmall)
             leg.notes?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+        }
+    }
+}
+
+@Composable
+private fun PlannedLegCard(
+    leg: PlannedJourneyLegEntity,
+    places: List<PlaceEntity>,
+    canStart: Boolean,
+    onStart: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val placesById = places.associateBy(PlaceEntity::id)
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                "${leg.position + 1}. ${placesById[leg.sourcePlaceId]?.name.orUnknown()} → " +
+                    placesById[leg.destinationPlaceId]?.name.orUnknown(),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text("${transportLabel(leg.transportMode)} · Pas encore commencé")
+            if (canStart) {
+                Button(onClick = onStart, modifier = Modifier.fillMaxWidth()) {
+                    Text("Commencer ce tronçon")
+                }
+            }
+            TextButton(onClick = onDelete, modifier = Modifier.fillMaxWidth()) {
+                Text("Retirer ce tronçon et les suivants")
+            }
         }
     }
 }
