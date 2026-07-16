@@ -10,11 +10,14 @@ import androidx.compose.runtime.SideEffect
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.mascode.itineraire.domain.model.ThemeMode
 import com.mascode.itineraire.ui.AppViewModel
 import com.mascode.itineraire.ui.AppViewModelFactory
 import com.mascode.itineraire.ui.navigation.ItineraireApp
 import com.mascode.itineraire.ui.theme.ItineraireTheme
+import com.mascode.itineraire.ui.widget.updateJourneyWidgets
+import kotlinx.coroutines.launch
 
 class MainActivity : FragmentActivity() {
     private lateinit var appViewModel: AppViewModel
@@ -58,11 +61,13 @@ class MainActivity : FragmentActivity() {
     override fun onStop() {
         super.onStop()
         if (!isChangingConfigurations) appViewModel.lock()
+        lifecycleScope.launch { updateJourneyWidgets(this@MainActivity) }
     }
 
     override fun onResume() {
         super.onResume()
         appViewModel.refreshSystemTheme()
+        lifecycleScope.launch { updateJourneyWidgets(this@MainActivity) }
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

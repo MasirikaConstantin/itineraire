@@ -87,6 +87,12 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
             }
             item {
                 PrivacySection(
+                    title = "Widget de l'écran d'accueil",
+                    content = "Le widget facultatif affiche le trajet et le tronçon en cours sur l'écran d'accueil Android. Lorsque la protection biométrique est activée, ces informations sont masquées et aucune action sur le trajet n'est proposée. Sans cette protection, toute personne ayant accès au téléphone déverrouillé peut voir le widget et terminer le tronçon actif. Cette action reste locale et le prix peut être complété plus tard dans l'application.",
+                )
+            }
+            item {
+                PrivacySection(
                     title = "Fichiers de sauvegarde",
                     content = "Vous pouvez exporter volontairement toutes vos données dans un fichier JSON puis choisir son emplacement avec le sélecteur Android. Ce fichier reste sous votre contrôle et peut être confié au stockage local ou au fournisseur de documents de votre choix. Il n'est pas chiffré : conservez-le dans un endroit sûr. Une restauration remplace les données locales uniquement après validation du fichier et confirmation explicite.",
                 )

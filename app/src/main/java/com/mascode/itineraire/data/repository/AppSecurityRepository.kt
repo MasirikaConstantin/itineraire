@@ -13,4 +13,6 @@ class AppSecurityRepository(private val securityDao: AppSecurityDao) {
     suspend fun setBiometricLockEnabled(enabled: Boolean) {
         securityDao.save(AppSecurityEntity(biometricLockEnabled = enabled))
     }
+
+    suspend fun isBiometricLockEnabled(): Boolean = securityDao.get()?.biometricLockEnabled ?: false
 }

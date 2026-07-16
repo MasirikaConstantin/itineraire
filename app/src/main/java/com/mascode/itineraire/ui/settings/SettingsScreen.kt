@@ -19,6 +19,7 @@ import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -41,6 +42,7 @@ fun SettingsScreen(
     onOpenSecurity: () -> Unit,
     onOpenTheme: () -> Unit,
     onOpenBackup: () -> Unit,
+    onAddWidget: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -108,6 +110,13 @@ fun SettingsScreen(
                     title = "Sauvegarde et restauration",
                     description = "Exporter ou restaurer toutes les données",
                     onClick = onOpenBackup,
+                )
+                HorizontalDivider(Modifier.padding(horizontal = 16.dp))
+                SettingsRow(
+                    icon = Icons.Outlined.Widgets,
+                    title = "Widget du trajet",
+                    description = "Ajouter le trajet en cours à l'écran d'accueil",
+                    onClick = onAddWidget,
                 )
             }
         }

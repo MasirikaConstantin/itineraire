@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="500dp"
+    android:height="250dp"
+    android:viewportWidth="500"
+    android:viewportHeight="250">
+
+    <path
+        android:fillColor="@color/widget_background"
+        android:pathData="M24,0 H476 A24,24 0,0 1,500 24 V226 A24,24 0,0 1,476 250 H24 A24,24 0,0 1,0 226 V24 A24,24 0,0 1,24 0Z" />
+
+    <group
+        android:scaleX="1.25"
+        android:scaleY="1.25"
+        android:translateX="18"
+        android:translateY="18">
+        <path
+            android:fillColor="@color/widget_primary"
+            android:pathData="M6.5,3A3.5,3.5 0,1 0,6.5 10A3.5,3.5 0,0 0,6.5 3M17.5,14A3.5,3.5 0,1 0,17.5 21A3.5,3.5 0,0 0,17.5 14M6.5,8A1.5,1.5 0,1 1,6.5 5A1.5,1.5 0,0 1,6.5 8M17.5,19A1.5,1.5 0,1 1,17.5 16A1.5,1.5 0,0 1,17.5 19M8,6.5H13A3,3 0,0 1,16 9.5V12H14V9.5A1,1 0,0 0,13 8.5H8Z" />
+    </group>
+
+    <path
+        android:fillColor="@color/widget_primary"
+        android:pathData="M58,27 H145 A4,4 0,0 1,149 31 V35 A4,4 0,0 1,145 39 H58 A4,4 0,0 1,54 35 V31 A4,4 0,0 1,58 27Z" />
+    <path
+        android:fillColor="@color/widget_text"
+        android:pathData="M18,67 H350 A6,6 0,0 1,356 73 A6,6 0,0 1,350 79 H18 A6,6 0,0 1,12 73 A6,6 0,0 1,18 67Z" />
+    <path
+        android:fillColor="@color/widget_muted"
+        android:pathData="M18,91 H302 A4,4 0,0 1,306 95 A4,4 0,0 1,302 99 H18 A4,4 0,0 1,14 95 A4,4 0,0 1,18 91Z" />
+    <path
+        android:fillColor="@color/widget_muted"
+        android:fillAlpha="0.75"
+        android:pathData="M18,113 H246 A4,4 0,0 1,250 117 A4,4 0,0 1,246 121 H18 A4,4 0,0 1,14 117 A4,4 0,0 1,18 113Z" />
+
+    <path
+        android:fillColor="@color/widget_primary"
+        android:pathData="M39,174 H461 A21,21 0,0 1,482 195 A21,21 0,0 1,461 216 H39 A21,21 0,0 1,18 195 A21,21 0,0 1,39 174Z" />
+    <path
+        android:fillColor="@color/widget_background"
+        android:pathData="M176,191 H324 A4,4 0,0 1,328 195 A4,4 0,0 1,324 199 H176 A4,4 0,0 1,172 195 A4,4 0,0 1,176 191Z" />
+</vector>

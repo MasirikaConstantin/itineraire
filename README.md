@@ -135,6 +135,7 @@ La version actuelle `1.3.0` permet de :
 - terminer un trajet en cours ;
 - terminer un trajet simple sans créer de tronçon ;
 - décomposer un trajet en tronçons avec lieux, transport, horaires, durée, prix en CDF et notes ;
+- afficher le trajet en cours dans un widget Android et passer au tronçon suivant sans ouvrir l'application ;
 - signaler les embouteillages, attentes, pannes, problèmes météo et autres observations ;
 - consulter le résumé détaillé et le coût total d'un trajet depuis l'historique ;
 - consulter dans le résumé la distance Haversine estimée lorsque les lieux possèdent une position ;
@@ -160,6 +161,14 @@ Les tronçons sont facultatifs. Un déplacement simple peut être terminé direc
 Pendant la préparation, l'utilisateur peut définir une suite continue de tronçons avec leurs lieux et modes de transport. Ces étapes sont enregistrées comme des tronçons prévus, sans fabriquer d'horaires. Dans le trajet en cours, **Commencer ce tronçon** transforme l'étape suivante en tronçon réel et enregistre seulement à cet instant son heure de départ. Retirer une étape prévue retire également les suivantes afin de ne pas conserver un itinéraire discontinu.
 
 Les étapes intermédiaires encore prévues peuvent être réordonnées par un appui long suivi d'un glissement vertical. Après le déplacement, leurs points de départ sont recalculés pour conserver un parcours continu et un message Android confirme l'enregistrement. Le dernier tronçon reste verrouillé, car son arrivée doit correspondre à la destination finale du trajet.
+
+## Widget du trajet en cours
+
+Le widget Android se trouve dans le sélecteur de widgets du lanceur. Il peut aussi être demandé depuis **Paramètres → Widget du trajet** lorsque le lanceur accepte l'épinglage direct. Son format redimensionnable affiche le trajet, le tronçon actif, son heure de départ et le prochain tronçon prévu.
+
+Le bouton **Terminer et continuer** clôt le tronçon actif et démarre immédiatement le suivant sans ouvrir l'application. Cette opération est atomique dans Room : le nouveau tronçon commence exactement à l'heure de fin du précédent. Le coût du tronçon terminé est marqué comme restant à compléter et peut être saisi plus tard depuis la page du trajet en cours.
+
+Si le verrou biométrique est activé, le widget masque les lieux et désactive l'action rapide afin de ne pas exposer les habitudes de déplacement sur l'écran d'accueil. Sans verrou, toute personne ayant accès au téléphone déverrouillé peut consulter et utiliser le widget.
 
 ## Événements et actions rapides
 
@@ -197,7 +206,7 @@ Le thème se choisit dans **Paramètres → Thème**. Trois modes sont disponibl
 
 ## Politique de confidentialité
 
-La politique est consultable hors connexion dans **Paramètres → Politique de confidentialité**. Elle décrit les données saisies, leur utilisation, le stockage local, la localisation facultative, le rôle du système Android dans l'authentification biométrique et les éventuelles sauvegardes système. Elle doit être actualisée avant toute intégration de synchronisation, sauvegarde distante, analyse d'usage, publicité ou autre service qui modifierait le traitement des données.
+La politique est consultable hors connexion dans **Paramètres → Politique de confidentialité**. Elle décrit les données saisies, leur utilisation, le stockage local, la localisation facultative, l'exposition volontaire du widget, le rôle du système Android dans l'authentification biométrique et les éventuelles sauvegardes système. Elle doit être actualisée avant toute intégration de synchronisation, sauvegarde distante, analyse d'usage, publicité ou autre service qui modifierait le traitement des données.
 
 ## Environnement de développement
 

@@ -1,3 +1,7 @@
 <resources>
+    <string name="journey_widget_description">Afficher et faire avancer le trajet en cours</string>
+    <string name="widget_preview_route">Maison → Travail</string>
+    <string name="widget_preview_active_leg">En cours · Rond-point Ngaba → ISC</string>
+    <string name="widget_preview_action">Terminer et continuer</string>
     <string name="app_name">Itinéraire</string>
 </resources>

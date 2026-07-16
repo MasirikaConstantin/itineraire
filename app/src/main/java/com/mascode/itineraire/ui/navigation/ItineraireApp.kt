@@ -1,5 +1,8 @@
 package com.mascode.itineraire.ui.navigation
 
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -25,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -57,6 +61,7 @@ import com.mascode.itineraire.ui.today.TodayScreen
 import com.mascode.itineraire.ui.today.TodayViewModel
 import com.mascode.itineraire.ui.today.AddEventScreen
 import com.mascode.itineraire.ui.today.QuickActionsScreen
+import com.mascode.itineraire.ui.widget.JourneyWidgetReceiver
 import kotlinx.coroutines.launch
 
 private enum class Destination(val label: String, val icon: ImageVector) {
@@ -136,6 +141,7 @@ private fun MainNavigation(
     onThemeModeChanged: (ThemeMode) -> Unit,
 ) {
     val navController = rememberNavController()
+    val context = LocalContext.current
     val pagerState = rememberPagerState(pageCount = { Destination.entries.size })
     val coroutineScope = rememberCoroutineScope()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -228,6 +234,19 @@ private fun MainNavigation(
                             themeMode = themeMode,
                             onOpenTheme = { navController.navigate(THEME_ROUTE) },
                             onOpenBackup = { navController.navigate(BACKUP_ROUTE) },
+                            onAddWidget = {
+                                val manager = AppWidgetManager.getInstance(context)
+                                val provider = ComponentName(context, JourneyWidgetReceiver::class.java)
+                                if (manager.isRequestPinAppWidgetSupported) {
+                                    manager.requestPinAppWidget(provider, null, null)
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Ajoutez le widget depuis le menu des widgets du lanceur.",
+                                        Toast.LENGTH_LONG,
+                                    ).show()
+                                }
+                            },
                             onOpenPrivacyPolicy = { navController.navigate(PRIVACY_POLICY_ROUTE) },
                         )
                     }

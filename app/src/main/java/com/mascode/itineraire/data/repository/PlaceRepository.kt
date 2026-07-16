@@ -8,6 +8,8 @@ import java.time.Instant
 class PlaceRepository(private val placeDao: PlaceDao) {
     val places = placeDao.observeAll()
 
+    suspend fun getAll(): List<PlaceEntity> = placeDao.getAll()
+
     suspend fun add(
         name: String,
         category: PlaceCategory,
