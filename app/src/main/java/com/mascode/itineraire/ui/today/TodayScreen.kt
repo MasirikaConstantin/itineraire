@@ -15,9 +15,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.NavigateBefore
 import androidx.compose.material.icons.automirrored.outlined.NavigateNext
+import androidx.compose.material.icons.automirrored.outlined.DirectionsWalk
+import androidx.compose.material.icons.automirrored.outlined.EventNote
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Bedtime
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Route
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -27,6 +37,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -39,6 +50,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mascode.itineraire.domain.model.DayEventType
@@ -117,7 +129,10 @@ private fun DayNavigationHeader(
     onNextDay: () -> Unit,
     onChooseDate: () -> Unit,
 ) {
-    Surface(color = MaterialTheme.colorScheme.background) {
+    Surface(
+        color = MaterialTheme.colorScheme.background,
+        tonalElevation = 2.dp,
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -128,7 +143,11 @@ private fun DayNavigationHeader(
                 Icon(Icons.AutoMirrored.Outlined.NavigateBefore, contentDescription = "Jour précédent")
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text(dayTitle(selectedDate), style = MaterialTheme.typography.headlineMedium)
+                Text(
+                    dayTitle(selectedDate),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
                 Text(
                     selectedDate.format(FULL_DATE_FORMATTER),
                     style = MaterialTheme.typography.bodyMedium,
@@ -179,92 +198,192 @@ private fun DayContent(
 
         if (isToday) {
             item {
-                Text("Actions rapides", style = MaterialTheme.typography.titleMedium)
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                 ) {
-                    OutlinedButton(onClick = { viewModel.addEvent(DayEventType.WAKE_UP) }) { Text("Réveil") }
-                    OutlinedButton(onClick = { viewModel.addEvent(DayEventType.LEAVE_HOME) }) { Text("Sortie maison") }
-                    state.quickActions.forEach { action ->
-                        OutlinedButton(onClick = { viewModel.runQuickAction(action) }) {
-                            Text(action.label)
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                "Actions rapides",
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            IconButton(onClick = onManageQuickActions) {
+                                Icon(Icons.Outlined.Edit, contentDescription = "Gérer les actions rapides")
+                            }
+                        }
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            FilledTonalButton(onClick = { viewModel.addEvent(DayEventType.WAKE_UP) }) {
+                                Icon(Icons.Outlined.Bedtime, contentDescription = null)
+                                Text("  Réveil")
+                            }
+                            FilledTonalButton(onClick = { viewModel.addEvent(DayEventType.LEAVE_HOME) }) {
+                                Icon(Icons.AutoMirrored.Outlined.DirectionsWalk, contentDescription = null)
+                                Text("  Sortie maison")
+                            }
+                            state.quickActions.forEach { action ->
+                                FilledTonalButton(onClick = { viewModel.runQuickAction(action) }) {
+                                    Text(action.label)
+                                }
+                            }
                         }
                     }
                 }
-                TextButton(onClick = onManageQuickActions) { Text("Gérer les actions rapides") }
             }
         }
 
         item {
-            OutlinedButton(
-                onClick = onAddEvent,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Ajouter un événement")
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedButton(
+                    onClick = onAddEvent,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Icon(Icons.AutoMirrored.Outlined.EventNote, contentDescription = null)
+                    Text("  Événement")
+                }
+                if (isToday) {
+                    Button(
+                        onClick = {
+                            if (state.places.size >= 2) onStartJourney() else onOpenPlaces()
+                        },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Icon(
+                            if (state.places.size >= 2) Icons.Outlined.Route else Icons.Outlined.Place,
+                            contentDescription = null,
+                        )
+                        Text(if (state.places.size >= 2) "  Trajet" else "  Ajouter lieux")
+                    }
+                }
             }
         }
 
-        if (isToday) {
+        if (isToday && state.places.size < 2) {
             item {
-                Button(
-                    onClick = {
-                        if (state.places.size >= 2) onStartJourney() else onOpenPlaces()
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(if (state.places.size >= 2) "Commencer un trajet" else "Ajouter au moins deux lieux")
-                }
+                Text(
+                    "Ajoutez au moins deux lieux pour commencer un trajet.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
 
         val activeJourneys = state.journeys.filter { it.status == JourneyStatus.IN_PROGRESS }
         if (activeJourneys.isNotEmpty()) {
-            item { Text("Trajet en cours", style = MaterialTheme.typography.titleMedium) }
+            item { SectionHeader("Trajet en cours") }
             items(activeJourneys, key = { it.id }) { journey ->
                 val source = state.places.firstOrNull { it.id == journey.sourcePlaceId }?.name.orEmpty()
                 val destination = state.places.firstOrNull { it.id == journey.destinationPlaceId }?.name.orEmpty()
-                Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("$source → $destination", style = MaterialTheme.typography.titleMedium)
-                        Text("Départ : ${formatTime(journey.startedAt)}")
-                        Button(onClick = { onOpenJourney(journey.id) }) { Text("Ouvrir le trajet") }
+                Card(
+                    onClick = { onOpenJourney(journey.id) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(Icons.Outlined.Route, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
+                            Text("$source → $destination", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                "Départ à ${formatTime(journey.startedAt)}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+                        }
+                        Icon(Icons.Outlined.ChevronRight, contentDescription = "Ouvrir le trajet")
                     }
                 }
             }
         }
 
-        item { Text("Événements", style = MaterialTheme.typography.titleMedium) }
+        item { SectionHeader("Événements", state.events.size.toString()) }
         if (state.events.isEmpty()) {
             item {
-                Text(
-                    if (isToday) {
-                        "Aucun événement enregistré aujourd'hui."
-                    } else {
-                        "Aucun événement enregistré à cette date."
-                    },
-                )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Icon(
+                            Icons.Outlined.Schedule,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            if (isToday) {
+                                "Votre journée est encore vide"
+                            } else {
+                                "Aucun événement à cette date"
+                            },
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Text(
+                            if (isToday) "Ajoutez un événement ou utilisez une action rapide." else "",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
             }
         } else {
             items(state.events, key = { it.id }) { event ->
-                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                    Text(formatTime(event.occurredAt), modifier = Modifier.weight(0.25f))
-                    Column(modifier = Modifier.weight(0.75f)) {
-                        Text(eventTypeLabel(event.type))
-                        event.placeId?.let { placeId ->
-                            state.places.firstOrNull { it.id == placeId }?.let { place ->
-                                Text(place.name, style = MaterialTheme.typography.bodySmall)
-                            }
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                ) {
+                    Row(
+                        Modifier.fillMaxWidth().padding(14.dp),
+                        verticalAlignment = Alignment.Top,
+                    ) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = MaterialTheme.shapes.medium,
+                        ) {
+                            Text(
+                                formatTime(event.occurredAt),
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                style = MaterialTheme.typography.labelLarge,
+                            )
                         }
-                        event.notes?.let { notes ->
-                            Text(notes, style = MaterialTheme.typography.bodySmall)
+                        Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                            Text(eventTypeLabel(event.type), style = MaterialTheme.typography.titleMedium)
+                            event.placeId?.let { placeId ->
+                                state.places.firstOrNull { it.id == placeId }?.let { place ->
+                                    Text(place.name, style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+                            event.notes?.let { notes ->
+                                Text(notes, style = MaterialTheme.typography.bodySmall)
+                            }
                         }
                     }
                 }
-                HorizontalDivider()
             }
         }
         item { Spacer(Modifier.height(16.dp)) }
+    }
+}
+
+@Composable
+private fun SectionHeader(title: String, count: String? = null) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+        count?.let {
+            Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.extraLarge) {
+                Text(it, modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp))
+            }
+        }
     }
 }
 
