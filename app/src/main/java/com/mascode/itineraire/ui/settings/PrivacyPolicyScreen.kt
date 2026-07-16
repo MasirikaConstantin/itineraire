@@ -93,6 +93,12 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
             }
             item {
                 PrivacySection(
+                    title = "Notification du trajet",
+                    content = "Avec votre autorisation, une notification silencieuse reste affichée pendant un tronçon actif. Elle indique le trajet, le temps écoulé et le prochain tronçon, et permet de terminer le tronçon sans ouvrir l'application. L'action exige que le téléphone soit déverrouillé. Lorsque la protection biométrique de l'application est active, les lieux sont masqués et l'action rapide est retirée.",
+                )
+            }
+            item {
+                PrivacySection(
                     title = "Fichiers de sauvegarde",
                     content = "Vous pouvez exporter volontairement toutes vos données dans un fichier JSON puis choisir son emplacement avec le sélecteur Android. Ce fichier reste sous votre contrôle et peut être confié au stockage local ou au fournisseur de documents de votre choix. Il n'est pas chiffré : conservez-le dans un endroit sûr. Une restauration remplace les données locales uniquement après validation du fichier et confirmation explicite.",
                 )

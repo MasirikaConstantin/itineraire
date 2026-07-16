@@ -137,6 +137,7 @@ La version actuelle `1.3.0` permet de :
 - terminer un trajet simple sans créer de tronçon ;
 - décomposer un trajet en tronçons avec lieux, transport, horaires, durée, prix en CDF et notes ;
 - afficher le trajet en cours dans un widget Android et passer au tronçon suivant sans ouvrir l'application ;
+- suivre le tronçon actif dans une notification persistante et silencieuse avec chronomètre et action rapide ;
 - signaler les embouteillages, attentes, pannes, problèmes météo et autres observations ;
 - consulter le résumé détaillé et le coût total d'un trajet depuis l'historique ;
 - parcourir un historique regroupé par journée, filtrer les trajets par état et consulter une synthèse globale ;
@@ -171,6 +172,16 @@ Le widget Android se trouve dans le sélecteur de widgets du lanceur. Il peut au
 Le bouton **Terminer et continuer** clôt le tronçon actif et démarre immédiatement le suivant sans ouvrir l'application. Cette opération est atomique dans Room : le nouveau tronçon commence exactement à l'heure de fin du précédent. Le coût du tronçon terminé est marqué comme restant à compléter et peut être saisi plus tard depuis la page du trajet en cours.
 
 Si le verrou biométrique est activé, le widget masque les lieux et désactive l'action rapide afin de ne pas exposer les habitudes de déplacement sur l'écran d'accueil. Sans verrou, toute personne ayant accès au téléphone déverrouillé peut consulter et utiliser le widget.
+
+## Notification du trajet en cours
+
+Après autorisation de l'utilisateur, une notification silencieuse et persistante apparaît uniquement lorsqu'un tronçon est actif. Elle affiche le trajet global, le tronçon courant, le prochain point prévu et un chronomètre calculé depuis l'heure réelle de départ.
+
+L'action **Terminer et continuer** réutilise la même transaction Room que le widget : elle clôt exactement un tronçon et démarre le suivant à la même heure. Sur le dernier tronçon, l'action devient **Terminer le tronçon** et la notification disparaît dès qu'aucun tronçon n'est actif. Android exige que l'appareil soit déverrouillé avant d'exécuter cette action.
+
+Sur Android 16.1 et les versions compatibles, l'application demande au système de présenter cette notification comme une mise à jour en direct. Sur les autres versions prises en charge, elle reste une notification persistante standard. L'application n'usurpe pas les contrôles d'un lecteur multimédia et ne démarre aucun suivi GPS en arrière-plan.
+
+Lorsque la protection biométrique est active, la notification masque les lieux et ne propose aucune action directe. L'autorisation et le canal peuvent être gérés depuis **Paramètres → Notification du trajet**.
 
 ## Événements et actions rapides
 

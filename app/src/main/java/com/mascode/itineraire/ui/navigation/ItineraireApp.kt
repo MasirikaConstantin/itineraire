@@ -2,6 +2,8 @@ package com.mascode.itineraire.ui.navigation
 
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
+import android.content.Intent
+import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -246,6 +248,13 @@ private fun MainNavigation(
                                         Toast.LENGTH_LONG,
                                     ).show()
                                 }
+                            },
+                            onOpenNotifications = {
+                                context.startActivity(
+                                    Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                        putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                                    },
+                                )
                             },
                             onOpenPrivacyPolicy = { navController.navigate(PRIVACY_POLICY_ROUTE) },
                         )

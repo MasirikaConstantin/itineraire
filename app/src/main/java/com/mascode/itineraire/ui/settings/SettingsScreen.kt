@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Widgets
+import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -32,6 +33,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.mascode.itineraire.data.local.entity.LocalAccountEntity
 import com.mascode.itineraire.domain.model.ThemeMode
+import com.mascode.itineraire.BuildConfig
 
 @Composable
 fun SettingsScreen(
@@ -43,6 +45,7 @@ fun SettingsScreen(
     onOpenTheme: () -> Unit,
     onOpenBackup: () -> Unit,
     onAddWidget: () -> Unit,
+    onOpenNotifications: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -118,6 +121,13 @@ fun SettingsScreen(
                     description = "Ajouter le trajet en cours à l'écran d'accueil",
                     onClick = onAddWidget,
                 )
+                HorizontalDivider(Modifier.padding(horizontal = 16.dp))
+                SettingsRow(
+                    icon = Icons.Outlined.NotificationsActive,
+                    title = "Notification du trajet",
+                    description = "Gérer l'affichage du tronçon en cours",
+                    onClick = onOpenNotifications,
+                )
             }
         }
 
@@ -127,7 +137,7 @@ fun SettingsScreen(
                 SettingsRow(
                     icon = Icons.Outlined.Info,
                     title = "Itinéraire",
-                    description = "Version 1.3.0",
+                    description = "Version ${BuildConfig.VERSION_NAME}",
                 )
                 HorizontalDivider(Modifier.padding(horizontal = 16.dp))
                 SettingsRow(
