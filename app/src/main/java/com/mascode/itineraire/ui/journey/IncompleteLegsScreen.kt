@@ -85,6 +85,7 @@ fun IncompleteLegsScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val placesById = remember(state.places) { state.places.associateBy(PlaceEntity::id) }
+    val incompleteLegs = remember(state.legs) { state.legs.filter(JourneyLegEntity::costPending) }
 
     Scaffold(
         modifier = modifier,
@@ -120,10 +121,10 @@ fun IncompleteLegsScreen(
                         horizontalArrangement = Arrangement.Center,
                     ) { CircularProgressIndicator() }
                 }
-            } else if (state.legs.isEmpty()) {
+            } else if (incompleteLegs.isEmpty()) {
                 item { EmptyIncompleteLegs() }
             } else {
-                items(state.legs, key = JourneyLegEntity::id) { leg ->
+                items(incompleteLegs, key = JourneyLegEntity::id) { leg ->
                     IncompleteLegCard(
                         leg = leg,
                         placesById = placesById,
@@ -224,10 +225,12 @@ fun CompleteLegScreen(
     legId: String,
     onBack: () -> Unit,
     onSaved: () -> Unit,
+    allowDelete: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val leg = state.legs.firstOrNull { it.id == legId }
+    var confirmDelete by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier,
@@ -235,7 +238,7 @@ fun CompleteLegScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
-                title = { Text("Compléter le tronçon") },
+                title = { Text(if (allowDelete) "Modifier le tronçon" else "Compléter le tronçon") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Retour")
@@ -274,9 +277,23 @@ fun CompleteLegScreen(
                         onSaved = onSaved,
                     )
                 },
+                onDelete = if (allowDelete) ({ confirmDelete = true }) else null,
                 modifier = Modifier.padding(padding),
             )
         }
+    }
+    if (confirmDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = { Text("Supprimer ce tronçon ?") },
+            text = { Text("Cette suppression est définitive. Le reste du trajet sera conservé.") },
+            confirmButton = {
+                TextButton(onClick = { viewModel.delete(legId, onSaved) }) {
+                    Text("Supprimer", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Annuler") } },
+        )
     }
 }
 
@@ -286,6 +303,7 @@ private fun CompleteLegForm(
     state: IncompleteLegsUiState,
     leg: JourneyLegEntity,
     onSave: (String?, String?, TransportMode, Instant, Instant, Long, String?) -> Unit,
+    onDelete: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val zone = remember { ZoneId.systemDefault() }
@@ -323,6 +341,13 @@ private fun CompleteLegForm(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+        if (onDelete != null) {
+            item {
+                TextButton(onClick = onDelete, modifier = Modifier.fillMaxWidth()) {
+                    Text("Supprimer ce tronçon", color = MaterialTheme.colorScheme.error)
+                }
+            }
         }
         item {
             OutlinedTextField(
@@ -448,7 +473,7 @@ private fun CompleteLegForm(
 }
 
 @Composable
-private fun DateTimeSelector(
+internal fun DateTimeSelector(
     label: String,
     instant: Instant,
     zone: ZoneId,
@@ -475,7 +500,7 @@ private fun DateTimeSelector(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DateTimePickerDialog(
+internal fun DateTimePickerDialog(
     initialInstant: Instant,
     zone: ZoneId,
     onDismiss: () -> Unit,

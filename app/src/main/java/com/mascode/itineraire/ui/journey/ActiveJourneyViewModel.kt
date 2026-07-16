@@ -166,6 +166,32 @@ class ActiveJourneyViewModel(
         runAction("Impossible d'annuler ce trajet.") { journeyRepository.cancel(journeyId) }
     }
 
+    fun updateFinishedJourney(
+        sourcePlaceId: String,
+        destinationPlaceId: String,
+        startedAt: java.time.Instant,
+        endedAt: java.time.Instant,
+        notes: String?,
+        onSaved: () -> Unit,
+    ) {
+        viewModelScope.launch {
+            runCatching {
+                journeyRepository.updateFinishedJourney(
+                    journeyId, sourcePlaceId, destinationPlaceId, startedAt, endedAt, notes,
+                )
+            }.onSuccess { onSaved() }
+                .onFailure { errorMessage.value = it.message ?: "Impossible de modifier ce trajet." }
+        }
+    }
+
+    fun deleteFinishedJourney(onDeleted: () -> Unit) {
+        viewModelScope.launch {
+            runCatching { journeyRepository.deleteFinishedJourney(journeyId) }
+                .onSuccess { onDeleted() }
+                .onFailure { errorMessage.value = it.message ?: "Impossible de supprimer ce trajet." }
+        }
+    }
+
     fun clearError() {
         errorMessage.value = null
     }

@@ -31,7 +31,7 @@ class IncompleteLegsViewModel(
     private val errorMessage = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<IncompleteLegsUiState> = combine(
-        journeyRepository.observeIncompleteLegs(),
+        journeyRepository.observeFinishedLegs(),
         placeRepository.places,
         isSaving,
         errorMessage,
@@ -76,5 +76,13 @@ class IncompleteLegsViewModel(
 
     fun clearError() {
         errorMessage.value = null
+    }
+
+    fun delete(legId: String, onDeleted: () -> Unit) {
+        viewModelScope.launch {
+            runCatching { journeyRepository.deleteFinishedLeg(legId) }
+                .onSuccess { onDeleted() }
+                .onFailure { errorMessage.value = it.message ?: "Impossible de supprimer ce tronçon." }
+        }
     }
 }

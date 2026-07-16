@@ -91,6 +91,8 @@ import kotlin.math.roundToLong
 fun ActiveJourneyScreen(
     viewModel: ActiveJourneyViewModel,
     onBack: () -> Unit,
+    onEditLeg: (String) -> Unit,
+    onEditJourney: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -102,6 +104,7 @@ fun ActiveJourneyScreen(
     var showObservationDialog by remember { mutableStateOf(false) }
     var showFinishConfirmation by remember { mutableStateOf(false) }
     var showCancelConfirmation by remember { mutableStateOf(false) }
+    var plannedLegToDelete by remember { mutableStateOf<PlannedJourneyLegEntity?>(null) }
     val currentTime by produceState(initialValue = Instant.now(), journey?.status) {
         while (journey?.status == JourneyStatus.IN_PROGRESS) {
             value = Instant.now()
@@ -243,7 +246,7 @@ fun ActiveJourneyScreen(
                                 state.activeLeg == null &&
                                 plannedLeg.id == state.plannedLegs.first().id,
                             onStart = { viewModel.startPlannedLeg(plannedLeg.id) },
-                            onDelete = { viewModel.deletePlannedLeg(plannedLeg.id) },
+                            onDelete = { plannedLegToDelete = plannedLeg },
                             canReorder = !isFinalLeg && state.plannedLegs.size > 2 && state.activeLeg == null,
                             isFinalLeg = isFinalLeg,
                             onMove = { offset ->
@@ -270,6 +273,7 @@ fun ActiveJourneyScreen(
                             places = state.places,
                             now = currentTime,
                             onCompleteCost = { legCostToComplete = leg },
+                            onEdit = { onEditLeg(leg.id) },
                         )
                     }
                 }
@@ -314,6 +318,10 @@ fun ActiveJourneyScreen(
                     }
                 } else {
                     item {
+                        OutlinedButton(
+                            onClick = { onEditJourney(journey.id) },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text("Modifier le trajet") }
                         Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
                             Text("Retour à l'accueil")
                         }
@@ -394,6 +402,20 @@ fun ActiveJourneyScreen(
             onConfirm = {
                 viewModel.cancelJourney()
                 showCancelConfirmation = false
+            },
+        )
+    }
+
+    plannedLegToDelete?.let { plannedLeg ->
+        ConfirmationDialog(
+            title = "Retirer ce tronçon prévu ?",
+            message = "Ce tronçon et toutes les étapes prévues qui le suivent seront retirés du trajet.",
+            confirmLabel = "Retirer",
+            destructive = true,
+            onDismiss = { plannedLegToDelete = null },
+            onConfirm = {
+                viewModel.deletePlannedLeg(plannedLeg.id)
+                plannedLegToDelete = null
             },
         )
     }
@@ -558,6 +580,7 @@ private fun LegCard(
     places: List<PlaceEntity>,
     now: Instant,
     onCompleteCost: () -> Unit,
+    onEdit: () -> Unit,
 ) {
     val end = leg.endedAt ?: now
     Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
@@ -579,6 +602,11 @@ private fun LegCard(
                 }
             }
             leg.notes?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+            if (leg.endedAt != null) {
+                TextButton(onClick = onEdit, modifier = Modifier.fillMaxWidth()) {
+                    Text("Modifier le tronçon")
+                }
+            }
         }
     }
 }
