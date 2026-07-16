@@ -118,7 +118,7 @@ L'injection des dépendances est volontairement manuelle pour garder le projet s
 
 ## État actuel
 
-La version actuelle `1.8.2` permet de :
+La version actuelle `1.9.0` permet de :
 
 - utiliser l'application sans créer de compte ni activer de protection ;
 - créer, modifier ou supprimer un profil local facultatif depuis une page dédiée ;
@@ -143,6 +143,8 @@ La version actuelle `1.8.2` permet de :
 - signaler les embouteillages, attentes, pannes, problèmes météo et autres observations ;
 - consulter le résumé détaillé et le coût total d'un trajet depuis l'historique ;
 - parcourir un historique regroupé par journée, filtrer les trajets par état et consulter une synthèse globale ;
+- modifier ou supprimer un trajet terminé, ses tronçons, les événements et les actions rapides personnalisées ;
+- demander une confirmation explicite avant chaque suppression destructive ;
 - consulter dans le résumé la distance Haversine estimée lorsque les lieux possèdent une position ;
 - consulter un premier écran de paramètres ;
 - choisir un thème clair, sombre ou synchronisé avec celui du téléphone ;
@@ -193,6 +195,8 @@ Un événement est une information enregistrée dans la journée avec une heure 
 
 L'utilisateur peut ajouter ses propres actions rapides depuis **Accueil → Gérer les actions rapides**. Une action possède un libellé, un type d'événement, un lieu et une note facultatifs. Un appui sur son bouton enregistre immédiatement l'événement à l'heure actuelle. Les actions personnalisées sont conservées dans Room et peuvent être supprimées depuis leur page de gestion.
 
+Un appui sur un événement de l'accueil ouvre son écran de modification avec le type, l'heure, le lieu et la note existants. L'écran permet aussi de le supprimer après confirmation. Dans la gestion des actions rapides, l'icône de modification recharge l'action dans le formulaire ; la suppression demande également une confirmation et ne supprime pas les événements déjà créés avec cette action.
+
 ## Historique des trajets
 
 L'historique présente une synthèse du nombre de trajets, des trajets terminés et du temps total des déplacements achevés. Les filtres **Tous**, **Terminés**, **En cours** et **Annulés** permettent de retrouver rapidement un déplacement selon son état.
@@ -200,6 +204,10 @@ L'historique présente une synthèse du nombre de trajets, des trajets terminés
 Les trajets sont regroupés par journée et affichent leur itinéraire, leur heure de départ, leur statut, leur durée et leur heure d'arrivée lorsqu'elles sont disponibles. Un appui sur une carte ouvre le détail complet du trajet sans modifier les données enregistrées.
 
 Lorsqu'un tronçon a été terminé rapidement depuis le widget ou la notification, une carte visible dans l'Historique indique le nombre d'éléments à compléter. Elle ouvre une liste dédiée puis un éditeur plein écran, sans fenêtre modale. L'utilisateur peut y saisir le prix en CDF et corriger les lieux, le transport, les horaires et les notes avant validation. Les horaires utilisent les sélecteurs Material de date et d'heure avec les valeurs enregistrées déjà présélectionnées ; aucune date complète ne doit être saisie au clavier. La validation retire uniquement le marqueur « à compléter » ; elle conserve le tronçon, son trajet et toutes les autres données locales.
+
+Depuis le résumé d'un trajet terminé ou annulé, chaque tronçon terminé peut être modifié dans un écran complet : lieux, transport, horaires, prix et notes. Le trajet lui-même possède un éditeur pour sa source, sa destination, ses horaires globaux et ses notes. Un trajet actif ne peut pas être supprimé ni modifié par ces écrans afin de protéger le suivi en cours.
+
+La suppression d'un tronçon conserve le trajet et ses autres étapes. La suppression d'un trajet est définitive et entraîne, grâce aux relations Room, la suppression de ses tronçons, étapes prévues et observations. Une confirmation décrit cette conséquence avant l'opération. Retirer un tronçon encore prévu demande également confirmation et retire les étapes suivantes, conformément à la continuité du parcours.
 
 ## Sauvegarde et restauration
 

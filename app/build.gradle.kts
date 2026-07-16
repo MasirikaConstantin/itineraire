@@ -16,8 +16,8 @@ android {
         applicationId = "com.mascode.itineraire"
         minSdk = 36
         targetSdk = 36
-        versionCode = 14
-        versionName = "1.8.2"
+        versionCode = 15
+        versionName = "1.9.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
