@@ -13,19 +13,28 @@ import android.os.SystemClock
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.EditLocationAlt
 import androidx.compose.material.icons.outlined.MyLocation
+import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -34,9 +43,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,11 +55,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mascode.itineraire.domain.model.PlaceCategory
@@ -144,6 +157,9 @@ fun PlaceEditorScreen(
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Retour")
                     }
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
             )
         },
     ) { padding ->
@@ -151,109 +167,227 @@ fun PlaceEditorScreen(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            item { Spacer(Modifier.height(2.dp)) }
             item {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = {
-                        name = it
-                        viewModel.clearError()
-                    },
-                    label = { Text("Nom du lieu") },
-                    placeholder = { Text("Ex. Maison, ISC, Rond-point Ngaba") },
-                    modifier = Modifier.fillMaxWidth().focusRequester(nameFocusRequester),
-                    singleLine = true,
-                )
+                PlaceEditorIntro(isEditing = placeId != null)
             }
             item {
-                Text("Catégorie", style = MaterialTheme.typography.titleMedium)
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    maxItemsInEachRow = 3,
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                 ) {
-                    PlaceCategory.entries.forEach { item ->
-                        FilterChip(
-                            selected = category == item,
-                            onClick = { category = item },
-                            label = { Text(categoryLabel(item)) },
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        SectionTitle(
+                            title = "Identité du lieu",
+                            subtitle = "Utilisez un nom court que vous reconnaîtrez facilement.",
+                        )
+                        OutlinedTextField(
+                            value = name,
+                            onValueChange = {
+                                name = it
+                                viewModel.clearError()
+                            },
+                            label = { Text("Nom du lieu") },
+                            placeholder = { Text("Ex. Maison, ISC, Rond-point Ngaba") },
+                            leadingIcon = { Icon(Icons.Outlined.Place, contentDescription = null) },
+                            modifier = Modifier.fillMaxWidth().focusRequester(nameFocusRequester),
+                            singleLine = true,
                         )
                     }
                 }
             }
             item {
-                Text("Position facultative", style = MaterialTheme.typography.titleMedium)
-                Text(
-                    "Enregistrez la position lorsque vous êtes sur place. Vous pourrez aussi l'ajouter ou la remplacer plus tard.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            if (latitude != null && longitude != null) {
-                item {
-                    Text(
-                        formatCoordinates(latitude!!, longitude!!),
-                        style = MaterialTheme.typography.labelMedium,
-                    )
-                    Text("Position enregistrée", color = MaterialTheme.colorScheme.primary)
-                }
-            }
-            item {
-                OutlinedButton(
-                    onClick = {
-                        if (hasLocationPermission(context)) {
-                            loadCurrentLocation()
-                        } else {
-                            permissionLauncher.launch(
-                                arrayOf(
-                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                                ),
-                            )
-                        }
-                    },
-                    enabled = !isLocating,
+                Card(
                     modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                 ) {
-                    Icon(Icons.Outlined.MyLocation, contentDescription = null)
-                    Text(
-                        when {
-                            isLocating -> "  Recherche en cours…"
-                            latitude == null -> "  Utiliser ma position actuelle"
-                            else -> "  Mettre à jour avec ma position actuelle"
-                        },
-                    )
-                }
-            }
-            if (latitude != null) {
-                item {
-                    TextButton(
-                        onClick = {
-                            latitude = null
-                            longitude = null
-                            locationMessage = null
-                            locationMessageIsError = false
-                        },
-                        modifier = Modifier.fillMaxWidth(),
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        Text("Retirer la position")
+                        SectionTitle(
+                            title = "Catégorie",
+                            subtitle = "La catégorie permet d'identifier plus vite le lieu.",
+                        )
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                            maxItemsInEachRow = 3,
+                        ) {
+                            PlaceCategory.entries.forEach { item ->
+                                FilterChip(
+                                    selected = category == item,
+                                    onClick = { category = item },
+                                    label = { Text(categoryLabel(item)) },
+                                    leadingIcon = {
+                                        Icon(
+                                            if (category == item) Icons.Outlined.CheckCircle else categoryIcon(item),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp),
+                                        )
+                                    },
+                                )
+                            }
+                        }
+                        Surface(
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = MaterialTheme.shapes.medium,
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    categoryIcon(category),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                )
+                                Text(
+                                    "  Catégorie sélectionnée : ${categoryLabel(category)}",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                )
+                            }
+                        }
                     }
                 }
             }
-            locationMessage?.let { message ->
-                item {
-                    Text(
-                        message,
-                        color = if (locationMessageIsError) {
-                            MaterialTheme.colorScheme.error
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        SectionTitle(
+                            title = "Position facultative",
+                            subtitle = "Ajoutez-la lorsque vous êtes sur place pour calculer les distances plus tard.",
+                        )
+
+                        if (latitude != null && longitude != null) {
+                            Surface(
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                shape = MaterialTheme.shapes.medium,
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Icon(
+                                        Icons.Outlined.CheckCircle,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    )
+                                    Column(Modifier.padding(start = 10.dp)) {
+                                        Text(
+                                            "Position enregistrée",
+                                            style = MaterialTheme.typography.labelLarge,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        )
+                                        Text(
+                                            formatCoordinates(latitude!!, longitude!!),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        )
+                                    }
+                                }
+                            }
                         } else {
-                            MaterialTheme.colorScheme.primary
-                        },
-                    )
+                            Surface(
+                                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                shape = MaterialTheme.shapes.medium,
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Icon(Icons.Outlined.EditLocationAlt, contentDescription = null)
+                                    Text(
+                                        "  Aucune position — le lieu reste utilisable.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                }
+                            }
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                if (hasLocationPermission(context)) {
+                                    loadCurrentLocation()
+                                } else {
+                                    permissionLauncher.launch(
+                                        arrayOf(
+                                            Manifest.permission.ACCESS_FINE_LOCATION,
+                                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                                        ),
+                                    )
+                                }
+                            },
+                            enabled = !isLocating,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            if (isLocating) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    strokeWidth = 2.dp,
+                                )
+                            } else {
+                                Icon(Icons.Outlined.MyLocation, contentDescription = null)
+                            }
+                            Text(
+                                when {
+                                    isLocating -> "  Recherche en cours…"
+                                    latitude == null -> "  Utiliser ma position actuelle"
+                                    else -> "  Mettre à jour ma position"
+                                },
+                            )
+                        }
+
+                        if (latitude != null) {
+                            TextButton(
+                                onClick = {
+                                    latitude = null
+                                    longitude = null
+                                    locationMessage = null
+                                    locationMessageIsError = false
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text("Retirer la position")
+                            }
+                        }
+
+                        locationMessage?.let { message ->
+                            Text(
+                                message,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (locationMessageIsError) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.primary
+                                },
+                            )
+                        }
+                    }
                 }
             }
             state.errorMessage?.let { message ->
-                item { Text(message, color = MaterialTheme.colorScheme.error) }
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                    ) {
+                        Text(
+                            message,
+                            modifier = Modifier.padding(14.dp),
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                    }
+                }
             }
             item {
                 Button(
@@ -275,6 +409,60 @@ fun PlaceEditorScreen(
             }
             item { Spacer(Modifier.height(16.dp)) }
         }
+    }
+}
+
+@Composable
+private fun PlaceEditorIntro(isEditing: Boolean) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Surface(
+                color = MaterialTheme.colorScheme.primary,
+                shape = MaterialTheme.shapes.medium,
+            ) {
+                Icon(
+                    if (isEditing) Icons.Outlined.EditLocationAlt else Icons.Outlined.Place,
+                    contentDescription = null,
+                    modifier = Modifier.padding(10.dp).size(26.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                )
+            }
+            Column(Modifier.padding(start = 14.dp)) {
+                Text(
+                    if (isEditing) "Informations du lieu" else "Nouveau point de repère",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    if (isEditing) "Modifiez uniquement les informations nécessaires."
+                    else "Le nom et la catégorie suffisent pour enregistrer ce lieu.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionTitle(title: String, subtitle: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(
+            title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Text(
+            subtitle,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

@@ -124,6 +124,7 @@ La version actuelle `1.3.0` permet de :
 - créer, modifier ou supprimer un profil local facultatif depuis une page dédiée ;
 - activer facultativement la protection par empreinte, visage compatible ou verrouillage du téléphone ;
 - créer et consulter des lieux classés par catégories (maison, études, travail, transport, santé, commerce et autres) depuis une page dédiée ;
+- rechercher les lieux enregistrés et repérer immédiatement leur catégorie et la présence d'une position ;
 - associer facultativement un lieu à la position actuelle du téléphone, lors de sa création ou plus tard ;
 - modifier le nom, la catégorie ou la position d'un lieu depuis la liste des lieux ;
 - enregistrer rapidement le réveil et la sortie de la maison ;
@@ -193,7 +194,9 @@ Android Auto Backup et le transfert entre appareils incluent la base principale 
 
 ## Géolocalisation facultative
 
-La création et la modification d'un lieu utilisent une page dédiée. Un lieu peut être enregistré sans coordonnées. Lorsque l'utilisateur se trouve à cet endroit, il peut employer **Utiliser ma position actuelle** pour ajouter ses coordonnées. Cette position peut ensuite être remplacée ou retirée en modifiant le lieu depuis la liste.
+La liste des lieux présente une synthèse des positions enregistrées, une recherche par nom ou catégorie et des cartes illustrées selon chaque type de lieu. La création et la modification utilisent une page dédiée structurée en trois parties : identité, catégorie et position facultative. La catégorie sélectionnée reste clairement mise en valeur.
+
+Un lieu peut être enregistré sans coordonnées. Lorsque l'utilisateur se trouve à cet endroit, il peut employer **Utiliser ma position actuelle** pour ajouter ses coordonnées. Cette position peut ensuite être remplacée ou retirée en modifiant le lieu depuis la liste.
 
 La localisation est demandée uniquement après une action explicite sur **Utiliser ma position actuelle**. L'application interroge les fournisseurs fusionné, réseau et GPS disponibles au lieu d'attendre uniquement un signal satellite. Une position très récente du téléphone peut être utilisée immédiatement ; après un délai maximal, une position mémorisée depuis moins de dix minutes sert de secours et l'interface l'indique clairement. Une position approximative reste acceptée, aucun accès en arrière-plan n'est demandé et aucun suivi continu n'est effectué. Les coordonnées retenues sont enregistrées avec le lieu dans la base Room locale afin de permettre plus tard le calcul des distances.
 
