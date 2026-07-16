@@ -63,6 +63,8 @@ import com.mascode.itineraire.ui.settings.SettingsScreen
 import com.mascode.itineraire.ui.settings.ThemeScreen
 import com.mascode.itineraire.ui.settings.BackupScreen
 import com.mascode.itineraire.ui.settings.BackupViewModel
+import com.mascode.itineraire.ui.statistics.StatisticsScreen
+import com.mascode.itineraire.ui.statistics.StatisticsViewModel
 import com.mascode.itineraire.ui.today.TodayScreen
 import com.mascode.itineraire.ui.today.TodayViewModel
 import com.mascode.itineraire.ui.today.AddEventScreen
@@ -93,6 +95,7 @@ private const val BACKUP_ROUTE = "settings/backup"
 private const val INCOMPLETE_LEGS_ROUTE = "journeys/incomplete"
 private const val COMPLETE_LEG_ROUTE = "journeys/incomplete/{legId}"
 private const val EDIT_JOURNEY_ROUTE = "journeys/edit/{journeyId}"
+private const val STATISTICS_ROUTE = "statistics"
 
 @Composable
 fun ItineraireApp(
@@ -220,6 +223,7 @@ private fun MainNavigation(
                                 viewModel = viewModel,
                                 onOpenJourney = { journeyId -> navController.navigate("journey/$journeyId") },
                                 onOpenIncompleteLegs = { navController.navigate(INCOMPLETE_LEGS_ROUTE) },
+                                onOpenStatistics = { navController.navigate(STATISTICS_ROUTE) },
                             )
                         }
 
@@ -416,6 +420,10 @@ private fun MainNavigation(
                         coroutineScope.launch { pagerState.animateScrollToPage(Destination.HISTORY.ordinal) }
                     },
                 )
+            }
+            composable(STATISTICS_ROUTE) {
+                val viewModel: StatisticsViewModel = viewModel(factory = factory)
+                StatisticsScreen(viewModel = viewModel, onBack = navController::popBackStack)
             }
         }
     }

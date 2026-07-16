@@ -9,6 +9,7 @@ import com.mascode.itineraire.ui.journey.IncompleteLegsViewModel
 import com.mascode.itineraire.ui.places.PlacesViewModel
 import com.mascode.itineraire.ui.today.TodayViewModel
 import com.mascode.itineraire.ui.settings.BackupViewModel
+import com.mascode.itineraire.ui.statistics.StatisticsViewModel
 
 class AppViewModelFactory(private val container: AppContainer) : ViewModelProvider.Factory {
     fun activeJourneyFactory(journeyId: String): ViewModelProvider.Factory =
@@ -51,6 +52,11 @@ class AppViewModelFactory(private val container: AppContainer) : ViewModelProvid
         ) as T
 
         modelClass.isAssignableFrom(IncompleteLegsViewModel::class.java) -> IncompleteLegsViewModel(
+            container.journeyRepository,
+            container.placeRepository,
+        ) as T
+
+        modelClass.isAssignableFrom(StatisticsViewModel::class.java) -> StatisticsViewModel(
             container.journeyRepository,
             container.placeRepository,
         ) as T

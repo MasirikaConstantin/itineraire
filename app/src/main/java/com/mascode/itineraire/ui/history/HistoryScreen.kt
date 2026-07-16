@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cancel
+import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.History
@@ -63,6 +64,7 @@ fun HistoryScreen(
     viewModel: HistoryViewModel,
     onOpenJourney: (String) -> Unit,
     onOpenIncompleteLegs: () -> Unit,
+    onOpenStatistics: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -86,6 +88,7 @@ fun HistoryScreen(
             item {
                 HistorySummary(state.journeys)
             }
+            item { StatisticsCard(onClick = onOpenStatistics) }
             if (state.incompleteLegs.isNotEmpty()) {
                 item {
                     IncompleteDataCard(
@@ -133,6 +136,45 @@ fun HistoryScreen(
         }
 
         item { Spacer(Modifier.height(16.dp)) }
+    }
+}
+
+@Composable
+private fun StatisticsCard(onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Outlined.BarChart,
+                contentDescription = null,
+                modifier = Modifier.size(28.dp),
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
+                Text(
+                    "Statistiques locales",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+                Text(
+                    "Dépenses, temps, transports et destinations.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+            }
+            Icon(
+                Icons.Outlined.ChevronRight,
+                contentDescription = "Ouvrir les statistiques",
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+        }
     }
 }
 
