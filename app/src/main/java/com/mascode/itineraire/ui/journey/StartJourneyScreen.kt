@@ -75,7 +75,6 @@ fun StartJourneyScreen(
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Retour")
                     }
                 },
-                windowInsets = WindowInsets(0, 0, 0, 0),
             )
         },
     ) { padding ->
