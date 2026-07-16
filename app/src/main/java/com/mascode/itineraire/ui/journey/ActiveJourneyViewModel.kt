@@ -19,6 +19,26 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.Duration
+import java.time.Instant
+
+data class TransportSummary(
+    val mode: TransportMode,
+    val legCount: Int,
+    val duration: Duration,
+    val cost: Long,
+    val distanceMeters: Double?,
+    val locatedLegCount: Int,
+)
+
+enum class JourneyTimelineType { JOURNEY_START, LEG_START, OBSERVATION, LEG_END, JOURNEY_END }
+
+data class JourneyTimelineItem(
+    val instant: Instant,
+    val type: JourneyTimelineType,
+    val leg: JourneyLegEntity? = null,
+    val observation: JourneyObservationEntity? = null,
+)
 
 data class ActiveJourneyUiState(
     val isLoading: Boolean = true,
@@ -35,12 +55,61 @@ data class ActiveJourneyUiState(
     val totalCost: Long
         get() = legs.sumOf(JourneyLegEntity::cost)
 
+    val totalDuration: Duration?
+        get() = journey?.endedAt?.let { Duration.between(journey.startedAt, it) }
+
+    val transportSummaries: List<TransportSummary>
+        get() {
+            val placesById = places.associateBy(PlaceEntity::id)
+            return legs.filter { it.endedAt != null }
+                .groupBy(JourneyLegEntity::transportMode)
+                .map { (mode, modeLegs) ->
+                    val distances = modeLegs.map { leg ->
+                        leg.distanceMeters?.toDouble() ?: distanceBetween(
+                            placesById[leg.sourcePlaceId],
+                            placesById[leg.destinationPlaceId],
+                        )
+                    }
+                    TransportSummary(
+                        mode = mode,
+                        legCount = modeLegs.size,
+                        duration = modeLegs.fold(Duration.ZERO) { total, leg ->
+                            total.plus(Duration.between(leg.startedAt, requireNotNull(leg.endedAt)))
+                        },
+                        cost = modeLegs.sumOf(JourneyLegEntity::cost),
+                        distanceMeters = distances.filterNotNull().takeIf { it.isNotEmpty() }?.sum(),
+                        locatedLegCount = distances.count { it != null },
+                    )
+                }
+                .sortedByDescending(TransportSummary::duration)
+        }
+
+    val timeline: List<JourneyTimelineItem>
+        get() {
+            val currentJourney = journey ?: return emptyList()
+            return buildList {
+                add(JourneyTimelineItem(currentJourney.startedAt, JourneyTimelineType.JOURNEY_START))
+                legs.forEach { leg ->
+                    add(JourneyTimelineItem(leg.startedAt, JourneyTimelineType.LEG_START, leg = leg))
+                    leg.endedAt?.let {
+                        add(JourneyTimelineItem(it, JourneyTimelineType.LEG_END, leg = leg))
+                    }
+                }
+                observations.forEach {
+                    add(JourneyTimelineItem(it.occurredAt, JourneyTimelineType.OBSERVATION, observation = it))
+                }
+                currentJourney.endedAt?.let {
+                    add(JourneyTimelineItem(it, JourneyTimelineType.JOURNEY_END))
+                }
+            }.sortedWith(compareBy(JourneyTimelineItem::instant, { timelinePriority(it.type) }))
+        }
+
     val estimatedDistanceMeters: Double?
         get() {
             val currentJourney = journey ?: return null
             val placesById = places.associateBy(PlaceEntity::id)
             val legDistances = legs.map { leg ->
-                distanceBetween(
+                leg.distanceMeters?.toDouble() ?: distanceBetween(
                     placesById[leg.sourcePlaceId],
                     placesById[leg.destinationPlaceId],
                 )
@@ -54,6 +123,17 @@ data class ActiveJourneyUiState(
             )
         }
 
+    val hasCompleteLegDistanceCoverage: Boolean
+        get() {
+            if (legs.isEmpty()) return estimatedDistanceMeters != null
+            val placesById = places.associateBy(PlaceEntity::id)
+            return legs.all { leg ->
+                leg.distanceMeters != null || distanceBetween(
+                    placesById[leg.sourcePlaceId], placesById[leg.destinationPlaceId],
+                ) != null
+            }
+        }
+
     val nextSourcePlaceId: String?
         get() = legs.lastOrNull()?.destinationPlaceId ?: journey?.sourcePlaceId
 
@@ -62,6 +142,14 @@ data class ActiveJourneyUiState(
 
     val canFinishJourney: Boolean
         get() = activeLeg == null && plannedLegs.isEmpty() && (legs.isEmpty() || hasReachedFinalDestination)
+}
+
+private fun timelinePriority(type: JourneyTimelineType): Int = when (type) {
+    JourneyTimelineType.JOURNEY_START -> 0
+    JourneyTimelineType.LEG_END -> 1
+    JourneyTimelineType.OBSERVATION -> 2
+    JourneyTimelineType.LEG_START -> 3
+    JourneyTimelineType.JOURNEY_END -> 4
 }
 
 private fun distanceBetween(start: PlaceEntity?, end: PlaceEntity?): Double? {
