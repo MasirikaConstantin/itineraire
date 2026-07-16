@@ -28,12 +28,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mascode.itineraire.domain.model.DayEventType
@@ -50,6 +54,15 @@ fun QuickActionsScreen(
     var eventType by remember { mutableStateOf(DayEventType.ACTIVITY) }
     var placeId by remember { mutableStateOf<String?>(null) }
     var notes by remember { mutableStateOf("") }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val labelFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(state.isLoading, state.quickActions.isEmpty()) {
+        if (!state.isLoading && state.quickActions.isEmpty()) {
+            labelFocusRequester.requestFocus()
+            keyboardController?.show()
+        }
+    }
 
     Scaffold(
         modifier = modifier,
@@ -118,7 +131,7 @@ fun QuickActionsScreen(
                     },
                     label = { Text("Nom du raccourci") },
                     placeholder = { Text("Ex. Arrivée au travail") },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().focusRequester(labelFocusRequester),
                     singleLine = true,
                 )
             }

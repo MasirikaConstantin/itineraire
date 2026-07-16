@@ -25,12 +25,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import com.mascode.itineraire.data.local.entity.LocalAccountEntity
 
@@ -46,6 +50,15 @@ fun ProfileScreen(
 ) {
     var name by remember(account?.displayName) { mutableStateOf(account?.displayName.orEmpty()) }
     var confirmDelete by remember { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val nameFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(account) {
+        if (account == null) {
+            nameFocusRequester.requestFocus()
+            keyboardController?.show()
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -93,7 +106,7 @@ fun ProfileScreen(
                             name = it
                             onClearMessage()
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().focusRequester(nameFocusRequester),
                         label = { Text("Votre nom") },
                         singleLine = true,
                     )

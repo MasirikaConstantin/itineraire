@@ -44,7 +44,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -65,6 +68,8 @@ fun PlaceEditorScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val nameFocusRequester = remember { FocusRequester() }
     val existingPlace = state.places.firstOrNull { it.id == placeId }
     var initializedPlaceId by remember(placeId) { mutableStateOf<String?>(null) }
     var name by remember(placeId) { mutableStateOf("") }
@@ -74,6 +79,13 @@ fun PlaceEditorScreen(
     var locationMessage by remember(placeId) { mutableStateOf<String?>(null) }
     var locationMessageIsError by remember(placeId) { mutableStateOf(false) }
     var isLocating by remember(placeId) { mutableStateOf(false) }
+
+    LaunchedEffect(placeId) {
+        if (placeId == null) {
+            nameFocusRequester.requestFocus()
+            keyboardController?.show()
+        }
+    }
 
     LaunchedEffect(placeId, existingPlace) {
         if (placeId != null && existingPlace != null && initializedPlaceId != placeId) {
@@ -149,7 +161,7 @@ fun PlaceEditorScreen(
                     },
                     label = { Text("Nom du lieu") },
                     placeholder = { Text("Ex. Maison, ISC, Rond-point Ngaba") },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().focusRequester(nameFocusRequester),
                     singleLine = true,
                 )
             }
