@@ -118,7 +118,7 @@ L'injection des dépendances est volontairement manuelle pour garder le projet s
 
 ## État actuel
 
-La version actuelle `1.8.0` permet de :
+La version actuelle `1.8.1` permet de :
 
 - utiliser l'application sans créer de compte ni activer de protection ;
 - créer, modifier ou supprimer un profil local facultatif depuis une page dédiée ;
@@ -198,7 +198,7 @@ L'historique présente une synthèse du nombre de trajets, des trajets terminés
 
 Les trajets sont regroupés par journée et affichent leur itinéraire, leur heure de départ, leur statut, leur durée et leur heure d'arrivée lorsqu'elles sont disponibles. Un appui sur une carte ouvre le détail complet du trajet sans modifier les données enregistrées.
 
-Lorsqu'un tronçon a été terminé rapidement depuis le widget ou la notification, une carte visible dans l'Historique indique le nombre d'éléments à compléter. Elle ouvre une liste dédiée puis un éditeur plein écran, sans fenêtre modale. L'utilisateur peut y saisir le prix en CDF et corriger les lieux, le transport, les horaires et les notes avant validation. La validation retire uniquement le marqueur « à compléter » ; elle conserve le tronçon, son trajet et toutes les autres données locales.
+Lorsqu'un tronçon a été terminé rapidement depuis le widget ou la notification, une carte visible dans l'Historique indique le nombre d'éléments à compléter. Elle ouvre une liste dédiée puis un éditeur plein écran, sans fenêtre modale. L'utilisateur peut y saisir le prix en CDF et corriger les lieux, le transport, les horaires et les notes avant validation. Les horaires utilisent les sélecteurs Material de date et d'heure avec les valeurs enregistrées déjà présélectionnées ; aucune date complète ne doit être saisie au clavier. La validation retire uniquement le marqueur « à compléter » ; elle conserve le tronçon, son trajet et toutes les autres données locales.
 
 ## Sauvegarde et restauration
 
