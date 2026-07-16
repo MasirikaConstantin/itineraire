@@ -105,7 +105,7 @@ com.mascode.itineraire
 │   └── model            Types et concepts métier
 ├── ui
 │   ├── today            Journée et trajet actif
-│   ├── journey          Suivi détaillé et résumé d'un trajet
+│   ├── journey          Création, suivi détaillé et résumé d'un trajet
 │   ├── auth             Verrou biométrique facultatif
 │   ├── history          Historique des trajets
 │   ├── places           Gestion des lieux
@@ -129,7 +129,9 @@ La version actuelle `1.0.1` permet de :
 - enregistrer rapidement le réveil et la sortie de la maison ;
 - créer un événement Réveil, Sortie de la maison, Arrivée, Activité ou Fin de journée avec une heure, un lieu et une note facultatifs ;
 - créer et supprimer des actions rapides personnalisées, en plus des raccourcis Réveil et Sortie maison fournis par défaut ;
-- démarrer et terminer un trajet entre deux lieux ;
+- préparer un trajet dans un écran dédié et défilable, puis le démarrer entre deux lieux ;
+- inverser rapidement le lieu de départ et la destination avant le démarrage ;
+- terminer un trajet en cours ;
 - décomposer un trajet en tronçons avec lieux, transport, horaires, durée, prix en CDF et notes ;
 - signaler les embouteillages, attentes, pannes, problèmes météo et autres observations ;
 - consulter le résumé détaillé et le coût total d'un trajet depuis l'historique ;
@@ -142,6 +144,12 @@ La version actuelle `1.0.1` permet de :
 - conserver toutes les informations dans une base Room locale.
 
 La position facultative permet de calculer dans le résumé une distance à vol d'oiseau avec la formule de Haversine. Lorsque tous les tronçons sont localisés, leurs distances sont additionnées ; sinon, le calcul relie directement la source et la destination finales si leurs positions sont disponibles. Cette estimation ne représente pas la longueur réelle du réseau routier. Une position n'est pas nécessaire pour enregistrer ou utiliser un lieu.
+
+## Démarrage d'un trajet
+
+Depuis l'accueil, **Commencer un trajet** ouvre une page complète et non une fenêtre modale. Le lieu de départ et la destination finale restent visibles en haut du formulaire, tandis qu'une seule liste de lieux défilante sert à modifier l'élément sélectionné. Cette organisation reste utilisable lorsque la base contient beaucoup de lieux et laisse de la place pour enrichir ultérieurement la préparation du trajet.
+
+Le bouton de démarrage reste accessible en bas de l'écran. Il crée le trajet dans la journée courante avec les mêmes dépôts Room que le reste de l'application, puis ouvre son suivi détaillé. Revenir en arrière ne crée rien. Cette évolution d'interface ne modifie ni le schéma de la base locale ni les trajets, lieux et événements déjà enregistrés.
 
 ## Événements et actions rapides
 
