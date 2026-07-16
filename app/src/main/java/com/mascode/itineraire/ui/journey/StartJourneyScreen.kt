@@ -284,12 +284,41 @@ private fun JourneyForm(
                 }
             } else {
                 item {
+                    Text("Nouveau tronçon", style = MaterialTheme.typography.titleLarge)
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        shape = MaterialTheme.shapes.large,
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            Icon(
+                                Icons.Outlined.LocationOn,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                            Column {
+                                Text("Lieu de départ sélectionné", style = MaterialTheme.typography.labelLarge)
+                                Text(
+                                    places.firstOrNull { it.id == nextPlannedSourceId }?.name.orEmpty(),
+                                    style = MaterialTheme.typography.titleLarge,
+                                )
+                            }
+                        }
+                    }
                     Text(
-                        "Départ : ${places.firstOrNull { it.id == nextPlannedSourceId }?.name.orEmpty()}",
+                        "Choisir l'arrivée",
+                        modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
                         style = MaterialTheme.typography.titleMedium,
                     )
-                    Text("Arrivée", style = MaterialTheme.typography.labelLarge)
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
                         places.filter { it.id != nextPlannedSourceId }.forEach { place ->
                             FilterChip(
                                 selected = plannedDestinationId == place.id,
@@ -298,8 +327,15 @@ private fun JourneyForm(
                             )
                         }
                     }
-                    Text("Transport", style = MaterialTheme.typography.labelLarge)
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Choisir le transport",
+                        modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
                         TransportMode.entries.forEach { mode ->
                             FilterChip(
                                 selected = plannedTransportMode == mode,
