@@ -175,13 +175,15 @@ Si le verrou biométrique est activé, le widget masque les lieux et désactive 
 
 ## Notification du trajet en cours
 
-Après autorisation de l'utilisateur, une notification silencieuse et persistante apparaît uniquement lorsqu'un tronçon est actif. Elle affiche le trajet global, le tronçon courant, le prochain point prévu et un chronomètre calculé depuis l'heure réelle de départ.
+Après autorisation de l'utilisateur, une notification persistante apparaît uniquement lorsqu'un tronçon est actif. Son canal utilise une importance Android élevée afin de ne pas être classé dans la section silencieuse et de rester prioritaire sur l'écran verrouillé. Une seule alerte est émise au démarrage ; les mises à jour suivantes restent discrètes. Elle affiche le trajet global, le tronçon courant, le prochain point prévu et un chronomètre calculé depuis l'heure réelle de départ.
 
 L'action **Terminer et continuer** réutilise la même transaction Room que le widget : elle clôt exactement un tronçon et démarre le suivant à la même heure. Sur le dernier tronçon, l'action devient **Terminer le tronçon** et la notification disparaît dès qu'aucun tronçon n'est actif. Android exige que l'appareil soit déverrouillé avant d'exécuter cette action.
 
 Sur Android 16.1 et les versions compatibles, l'application demande au système de présenter cette notification comme une mise à jour en direct. Sur les autres versions prises en charge, elle reste une notification persistante standard. L'application n'usurpe pas les contrôles d'un lecteur multimédia et ne démarre aucun suivi GPS en arrière-plan.
 
-Lorsque la protection biométrique est active, la notification masque les lieux et ne propose aucune action directe. L'autorisation et le canal peuvent être gérés depuis **Paramètres → Notification du trajet**.
+Un service de premier plan de type Android `specialUse` reste actif pendant le tronçon afin de maintenir la notification et ses actions lorsque l'application quitte l'écran. Il s'arrête automatiquement dès qu'il n'existe plus de tronçon actif. Ce service ne collecte aucune position, n'utilise pas le réseau et ne crée aucune nouvelle donnée de déplacement par lui-même.
+
+La notification possède une version publique générique afin de rester visible sur l'écran verrouillé sans révéler automatiquement les lieux. Lorsque la protection biométrique est active, elle masque également les lieux dans le volet des notifications et ne propose aucune action directe. L'autorisation et le canal peuvent être gérés depuis **Paramètres → Notification du trajet**.
 
 ## Événements et actions rapides
 

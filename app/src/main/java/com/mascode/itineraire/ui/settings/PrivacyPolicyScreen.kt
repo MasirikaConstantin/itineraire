@@ -94,7 +94,7 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
             item {
                 PrivacySection(
                     title = "Notification du trajet",
-                    content = "Avec votre autorisation, une notification silencieuse reste affichée pendant un tronçon actif. Elle indique le trajet, le temps écoulé et le prochain tronçon, et permet de terminer le tronçon sans ouvrir l'application. L'action exige que le téléphone soit déverrouillé. Lorsque la protection biométrique de l'application est active, les lieux sont masqués et l'action rapide est retirée.",
+                    content = "Avec votre autorisation, une notification persistante reste affichée pendant un tronçon actif grâce à un service Android de premier plan. Elle indique le trajet, le temps écoulé et le prochain tronçon, et permet de terminer le tronçon sans ouvrir l'application. Sur l'écran verrouillé, une version générique masque les lieux ; l'action exige le déverrouillage. Lorsque la protection biométrique de l'application est active, les lieux sont également masqués dans le volet des notifications et l'action rapide est retirée. Ce service n'effectue aucun suivi GPS en arrière-plan.",
                 )
             }
             item {
