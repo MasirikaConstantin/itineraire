@@ -171,12 +171,12 @@ private fun MainNavigation(
         NavHost(
             navController = navController,
             startDestination = MAIN_ROUTE,
-            modifier = Modifier.padding(padding),
+            modifier = Modifier.fillMaxSize(),
         ) {
             composable(MAIN_ROUTE) {
                 HorizontalPager(
                     state = pagerState,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().padding(padding),
                     key = { Destination.entries[it].name },
                     beyondViewportPageCount = 1,
                 ) { page ->
