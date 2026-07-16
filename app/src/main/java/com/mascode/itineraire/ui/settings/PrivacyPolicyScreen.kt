@@ -62,7 +62,7 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
                     style = MaterialTheme.typography.titleLarge,
                 )
                 Text(
-                    text = "Dernière mise à jour : 15 juillet 2026",
+                    text = "Dernière mise à jour : 16 juillet 2026",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -83,7 +83,13 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
             item {
                 PrivacySection(
                     title = "Stockage et transmission",
-                    content = "Les données personnelles sont stockées dans l'espace privé de l'application sur votre téléphone. L'application ne possède actuellement aucun compte en ligne, outil d'analyse, service publicitaire ou fond de carte distant, et ne demande pas l'accès à Internet. Android peut néanmoins sauvegarder ou transférer les données de l'application selon les réglages du téléphone et du compte système.",
+                    content = "Les données personnelles sont stockées dans l'espace privé de l'application sur votre téléphone. L'application ne possède actuellement aucun compte en ligne, outil d'analyse, service publicitaire ou fond de carte distant, et ne demande pas l'accès à Internet. Android peut sauvegarder ou transférer les données selon les réglages du téléphone et du compte système. La sauvegarde cloud automatique est désactivée si Android ne garantit pas ses capacités de chiffrement.",
+                )
+            }
+            item {
+                PrivacySection(
+                    title = "Fichiers de sauvegarde",
+                    content = "Vous pouvez exporter volontairement toutes vos données dans un fichier JSON puis choisir son emplacement avec le sélecteur Android. Ce fichier reste sous votre contrôle et peut être confié au stockage local ou au fournisseur de documents de votre choix. Il n'est pas chiffré : conservez-le dans un endroit sûr. Une restauration remplace les données locales uniquement après validation du fichier et confirmation explicite.",
                 )
             }
             item {
@@ -101,7 +107,7 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
             item {
                 PrivacySection(
                     title = "Conservation et suppression",
-                    content = "Les données restent sur l'appareil jusqu'à leur modification, leur suppression ou la désinstallation de l'application. Une copie gérée par Android peut être restaurée si la sauvegarde système est active. Les futures fonctions de sauvegarde devront rester explicites et contrôlées par l'utilisateur.",
+                    content = "Les données restent sur l'appareil jusqu'à leur modification, leur suppression, leur remplacement par une restauration ou la désinstallation de l'application. Une copie gérée par Android peut être restaurée si la sauvegarde système est active. Les fichiers exportés restent présents jusqu'à leur suppression par l'utilisateur.",
                 )
             }
             item {

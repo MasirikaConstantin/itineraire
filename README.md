@@ -10,7 +10,7 @@ Le projet cherche d'abord à répondre à une question simple : **comment se dé
 
 L'application doit rester utilisable hors connexion. La base Room locale est la source de vérité et aucune donnée personnelle ne doit dépendre d'un service distant pour être consultée.
 
-Une sauvegarde et une synchronisation pourront être ajoutées plus tard, sans remettre en cause le fonctionnement local.
+L'utilisateur peut exporter et restaurer une sauvegarde locale complète. Une synchronisation entre appareils pourra être ajoutée plus tard, sans remettre en cause le fonctionnement local.
 
 ### Enregistrer des faits
 
@@ -118,7 +118,7 @@ L'injection des dépendances est volontairement manuelle pour garder le projet s
 
 ## État actuel
 
-La version actuelle `1.1.0` permet de :
+La version actuelle `1.2.0` permet de :
 
 - utiliser l'application sans créer de compte ni activer de protection ;
 - créer, modifier ou supprimer un profil local facultatif depuis une page dédiée ;
@@ -141,7 +141,9 @@ La version actuelle `1.1.0` permet de :
 - consulter la politique de confidentialité directement dans les paramètres ;
 - naviguer entre les quatre sections principales par glissement horizontal ou avec le menu inférieur ;
 - parcourir les journées avec les flèches de l'accueil ou sélectionner directement une date dans le calendrier ;
-- conserver toutes les informations dans une base Room locale.
+- conserver toutes les informations dans une base Room locale ;
+- exporter toutes les données dans un fichier JSON choisi par l'utilisateur et restaurer une sauvegarde valide ;
+- confier à Android une sauvegarde système chiffrée et le transfert vers un nouvel appareil lorsque les réglages du téléphone l'autorisent.
 
 La position facultative permet de calculer dans le résumé une distance à vol d'oiseau avec la formule de Haversine. Lorsque tous les tronçons sont localisés, leurs distances sont additionnées ; sinon, le calcul relie directement la source et la destination finales si leurs positions sont disponibles. Cette estimation ne représente pas la longueur réelle du réseau routier. Une position n'est pas nécessaire pour enregistrer ou utiliser un lieu.
 
@@ -156,6 +158,14 @@ Le bouton de démarrage reste accessible en bas de l'écran. Il crée le trajet 
 Un événement est une information enregistrée dans la journée avec une heure précise. Sa création détaillée permet de choisir son type, un lieu et une note facultatifs. Les événements Réveil et Sortie de la maison disposent également de raccourcis fixes sur l'accueil.
 
 L'utilisateur peut ajouter ses propres actions rapides depuis **Accueil → Gérer les actions rapides**. Une action possède un libellé, un type d'événement, un lieu et une note facultatifs. Un appui sur son bouton enregistre immédiatement l'événement à l'heure actuelle. Les actions personnalisées sont conservées dans Room et peuvent être supprimées depuis leur page de gestion.
+
+## Sauvegarde et restauration
+
+La page **Paramètres → Sauvegarde et restauration** permet de créer un fichier JSON versionné avec les neuf tables Room : profil local, sécurité, lieux, journées, événements, trajets, tronçons, observations et actions rapides. Le sélecteur de documents Android laisse l'utilisateur enregistrer ce fichier dans le stockage local, sur une carte mémoire ou auprès d'un fournisseur cloud installé, sans permission générale d'accès aux fichiers.
+
+Avant une restauration, l'application contrôle l'origine, la version, les tables et les colonnes du fichier. Les données ne sont remplacées qu'après une confirmation explicite et dans une transaction Room unique : une erreur annule toute l'opération et préserve la base existante. Le format JSON manuel n'est pas encore chiffré et doit être conservé dans un emplacement sûr.
+
+Android Auto Backup et le transfert entre appareils incluent la base principale et la préférence de thème. La sauvegarde cloud automatique exige les capacités de chiffrement du système. Ce mécanisme dépend du compte et des réglages de sauvegarde Android ; il complète l'export manuel mais ne le remplace pas.
 
 ## Géolocalisation facultative
 
@@ -280,6 +290,5 @@ Afficher les statistiques mensuelles
 3. Observations pendant un trajet.
 4. Modification et suppression des données.
 5. Statistiques par période et par itinéraire.
-6. Export et restauration locale.
-7. Sauvegarde en ligne et identité distante facultatives, distinctes du compte local.
-8. Géolocalisation facultative.
+6. Sauvegarde en ligne et identité distante facultatives, distinctes du compte local.
+7. Géolocalisation facultative.
