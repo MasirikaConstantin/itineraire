@@ -27,6 +27,7 @@ import androidx.compose.material.icons.outlined.AddRoad
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.DragHandle
+import androidx.compose.material.icons.outlined.DirectionsBus
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Route
@@ -163,8 +164,10 @@ fun ActiveJourneyScreen(
                     )
                 }
 
-                item {
-                    JourneyProgressCard(state)
+                if (journey.status == JourneyStatus.IN_PROGRESS) {
+                    item { JourneyProgressCard(state) }
+                } else {
+                    item { CompletedJourneyOverview(state) }
                 }
 
                 state.errorMessage?.let { message ->
@@ -265,7 +268,7 @@ fun ActiveJourneyScreen(
                     }
                 }
 
-                if (state.legs.isNotEmpty()) {
+                if (state.legs.isNotEmpty() && journey.status == JourneyStatus.IN_PROGRESS) {
                     item { Text("Tronçons effectués", style = MaterialTheme.typography.titleLarge) }
                     items(state.legs, key = { it.id }) { leg ->
                         LegCard(
@@ -278,7 +281,7 @@ fun ActiveJourneyScreen(
                     }
                 }
 
-                if (state.observations.isNotEmpty()) {
+                if (state.observations.isNotEmpty() && journey.status == JourneyStatus.IN_PROGRESS) {
                     item { Text("Observations", style = MaterialTheme.typography.titleLarge) }
                     items(state.observations, key = { it.id }) { observation ->
                         ObservationRow(observation)
@@ -317,6 +320,7 @@ fun ActiveJourneyScreen(
                         }
                     }
                 } else {
+                    item { CompletedJourneyTimeline(state, onEditLeg) }
                     item {
                         OutlinedButton(
                             onClick = { onEditJourney(journey.id) },
@@ -459,31 +463,37 @@ private fun JourneySummaryCard(state: ActiveJourneyUiState, now: Instant) {
                     )
                 }
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                JourneyMetric(
-                    icon = Icons.Outlined.AccessTime,
-                    label = "Durée",
-                    value = formatDuration(Duration.between(journey.startedAt, end)),
-                    modifier = Modifier.weight(1f),
-                )
-                JourneyMetric(
-                    icon = Icons.Outlined.Straighten,
-                    label = "Distance",
-                    value = state.estimatedDistanceMeters?.let(::formatDistance) ?: "—",
-                    modifier = Modifier.weight(1f),
-                )
-                JourneyMetric(
-                    icon = Icons.Outlined.Payments,
-                    label = "Coût",
-                    value = formatCost(state.totalCost),
-                    modifier = Modifier.weight(1f),
-                )
+            if (journey.status == JourneyStatus.IN_PROGRESS) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    JourneyMetric(
+                        icon = Icons.Outlined.AccessTime,
+                        label = "Durée",
+                        value = formatDuration(Duration.between(journey.startedAt, end)),
+                        modifier = Modifier.weight(1f),
+                    )
+                    JourneyMetric(
+                        icon = Icons.Outlined.Straighten,
+                        label = "Distance",
+                        value = state.estimatedDistanceMeters?.let(::formatDistance) ?: "—",
+                        modifier = Modifier.weight(1f),
+                    )
+                    JourneyMetric(
+                        icon = Icons.Outlined.Payments,
+                        label = "Coût",
+                        value = formatCost(state.totalCost),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
             Text(
-                "Départ à ${formatTime(journey.startedAt)}",
+                if (journey.status == JourneyStatus.IN_PROGRESS) {
+                    "Départ à ${formatTime(journey.startedAt)}"
+                } else {
+                    "${formatDateTime(journey.startedAt)} → ${formatDateTime(end)}"
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -507,6 +517,276 @@ private fun JourneyMetric(
             Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Text(value, style = MaterialTheme.typography.labelLarge, maxLines = 1)
             Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CompletedJourneyOverview(state: ActiveJourneyUiState) {
+    val journey = state.journey ?: return
+    val end = journey.endedAt ?: return
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Text("Bilan du déplacement", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                SummaryValue(
+                    value = formatDuration(Duration.between(journey.startedAt, end)),
+                    label = "Durée totale",
+                    modifier = Modifier.weight(1f),
+                )
+                SummaryValue(
+                    value = state.estimatedDistanceMeters?.let(::formatDistance) ?: "Non disponible",
+                    label = if (state.hasCompleteLegDistanceCoverage) "Distance totale" else "Distance directe",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                SummaryValue(
+                    value = formatCost(state.totalCost),
+                    label = "Dépense totale",
+                    modifier = Modifier.weight(1f),
+                )
+                SummaryValue(
+                    value = state.legs.size.toString(),
+                    label = if (state.legs.size > 1) "Tronçons" else "Tronçon",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            if (state.estimatedDistanceMeters == null) {
+                Text(
+                    "Ajoutez une position aux lieux pour calculer la distance à vol d'oiseau.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            } else if (!state.hasCompleteLegDistanceCoverage) {
+                Text(
+                    "Distance directe entre la source et la destination : certains tronçons ne sont pas localisés.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+        }
+    }
+
+    if (state.transportSummaries.isNotEmpty()) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.DirectionsBus, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Text(
+                    "Répartition par transport",
+                    modifier = Modifier.padding(start = 8.dp),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+            state.transportSummaries.forEach { summary ->
+                TransportSummaryCard(summary)
+            }
+        }
+    } else {
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        ) {
+            Text(
+                "Aucun tronçon : le trajet a été enregistré comme un déplacement simple.",
+                modifier = Modifier.padding(16.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SummaryValue(value: String, label: String, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
+        shape = MaterialTheme.shapes.medium,
+    ) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun TransportSummaryCard(summary: TransportSummary) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    transportLabel(summary.mode),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    "${summary.legCount} tronçon${if (summary.legCount > 1) "s" else ""}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                TransportValue("Durée", formatDuration(summary.duration))
+                TransportValue("Dépense", formatCost(summary.cost))
+                TransportValue(
+                    "Distance",
+                    summary.distanceMeters?.let(::formatDistance) ?: "—",
+                )
+            }
+            if (summary.locatedLegCount in 1 until summary.legCount) {
+                Text(
+                    "Distance partielle : ${summary.locatedLegCount}/${summary.legCount} tronçons localisés.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TransportValue(label: String, value: String) {
+    Column {
+        Text(value, style = MaterialTheme.typography.labelLarge)
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun CompletedJourneyTimeline(state: ActiveJourneyUiState, onEditLeg: (String) -> Unit) {
+    val journey = state.journey ?: return
+    val places = state.places.associateBy(PlaceEntity::id)
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text("Chronologie complète", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+        state.timeline.forEachIndexed { index, item ->
+            TimelineRow(
+                item = item,
+                state = state,
+                places = places,
+                isLast = index == state.timeline.lastIndex,
+                onEditLeg = onEditLeg,
+            )
+        }
+        journey.notes?.let { notes ->
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
+                Column(Modifier.fillMaxWidth().padding(14.dp)) {
+                    Text("Note du trajet", style = MaterialTheme.typography.labelLarge)
+                    Text(notes, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TimelineRow(
+    item: JourneyTimelineItem,
+    state: ActiveJourneyUiState,
+    places: Map<String, PlaceEntity>,
+    isLast: Boolean,
+    onEditLeg: (String) -> Unit,
+) {
+    val journey = requireNotNull(state.journey)
+    val leg = item.leg
+    val title: String
+    val details: String
+    val icon: ImageVector
+    when (item.type) {
+        JourneyTimelineType.JOURNEY_START -> {
+            title = "Départ du trajet"
+            details = places[journey.sourcePlaceId]?.name.orUnknown()
+            icon = Icons.Outlined.Route
+        }
+        JourneyTimelineType.LEG_START -> {
+            title = "Début du tronçon ${(leg?.position ?: 0) + 1}"
+            details = "${leg?.let { legRoute(it, state.places) }} · ${leg?.let { transportLabel(it.transportMode) }}"
+            icon = Icons.Outlined.DirectionsBus
+        }
+        JourneyTimelineType.OBSERVATION -> {
+            val observation = requireNotNull(item.observation)
+            title = observationLabel(observation.type)
+            details = observation.notes ?: "Observation enregistrée"
+            icon = Icons.Outlined.AddRoad
+        }
+        JourneyTimelineType.LEG_END -> {
+            val finishedLeg = requireNotNull(leg)
+            title = "Fin du tronçon ${finishedLeg.position + 1}"
+            details = buildString {
+                append(formatDuration(Duration.between(finishedLeg.startedAt, requireNotNull(finishedLeg.endedAt))))
+                append(" · ")
+                append(if (finishedLeg.costPending) "Prix à compléter" else formatCost(finishedLeg.cost))
+            }
+            icon = Icons.Outlined.CheckCircle
+        }
+        JourneyTimelineType.JOURNEY_END -> {
+            title = if (journey.status == JourneyStatus.CANCELLED) "Trajet annulé" else "Arrivée finale"
+            details = places[journey.destinationPlaceId]?.name.orUnknown()
+            icon = Icons.Outlined.Flag
+        }
+    }
+
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Surface(
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = MaterialTheme.shapes.extraLarge,
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    modifier = Modifier.padding(8.dp).width(20.dp).height(20.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+            if (!isLast) {
+                Surface(
+                    modifier = Modifier.width(2.dp).height(52.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                ) {}
+            }
+        }
+        Card(
+            modifier = Modifier.weight(1f).padding(start = 10.dp, bottom = 6.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        ) {
+            Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
+                    Text(formatTime(item.instant), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                }
+                Text(details, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (item.type == JourneyTimelineType.LEG_END && leg != null) {
+                    TextButton(onClick = { onEditLeg(leg.id) }) { Text("Modifier ce tronçon") }
+                }
+            }
         }
     }
 }
@@ -937,6 +1217,9 @@ private fun statusColor(status: JourneyStatus) = when (status) {
 
 private fun formatTime(instant: Instant): String =
     DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault()).format(instant)
+
+private fun formatDateTime(instant: Instant): String =
+    DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneId.systemDefault()).format(instant)
 
 private fun formatCost(cost: Long): String =
     "${java.text.NumberFormat.getIntegerInstance(java.util.Locale.FRENCH).format(cost)} CDF"
