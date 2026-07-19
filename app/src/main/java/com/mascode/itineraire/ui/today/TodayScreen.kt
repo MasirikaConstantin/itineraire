@@ -1,6 +1,7 @@
 package com.mascode.itineraire.ui.today
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -241,26 +242,55 @@ private fun DayContent(
         }
 
         item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedButton(
-                    onClick = onAddEvent,
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Icon(Icons.AutoMirrored.Outlined.EventNote, contentDescription = null)
-                    Text("  Événement")
-                }
-                if (isToday) {
-                    Button(
-                        onClick = {
-                            if (state.places.size >= 2) onStartJourney() else onOpenPlaces()
-                        },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Icon(
-                            if (state.places.size >= 2) Icons.Outlined.Route else Icons.Outlined.Place,
-                            contentDescription = null,
-                        )
-                        Text(if (state.places.size >= 2) "  Trajet" else "  Ajouter lieux")
+            BoxWithConstraints(Modifier.fillMaxWidth()) {
+                val compactLayout = maxWidth < 420.dp
+                if (compactLayout) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        OutlinedButton(onClick = onAddEvent, modifier = Modifier.fillMaxWidth()) {
+                            Icon(Icons.AutoMirrored.Outlined.EventNote, contentDescription = null)
+                            Text("  Événement", maxLines = 1)
+                        }
+                        if (isToday) {
+                            Button(
+                                onClick = {
+                                    if (state.places.size >= 2) onStartJourney() else onOpenPlaces()
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Icon(
+                                    if (state.places.size >= 2) Icons.Outlined.Route else Icons.Outlined.Place,
+                                    contentDescription = null,
+                                )
+                                Text(
+                                    if (state.places.size >= 2) "  Trajet" else "  Ajouter lieux",
+                                    maxLines = 1,
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        OutlinedButton(onClick = onAddEvent, modifier = Modifier.weight(1f)) {
+                            Icon(Icons.AutoMirrored.Outlined.EventNote, contentDescription = null)
+                            Text("  Événement", maxLines = 1)
+                        }
+                        if (isToday) {
+                            Button(
+                                onClick = {
+                                    if (state.places.size >= 2) onStartJourney() else onOpenPlaces()
+                                },
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Icon(
+                                    if (state.places.size >= 2) Icons.Outlined.Route else Icons.Outlined.Place,
+                                    contentDescription = null,
+                                )
+                                Text(
+                                    if (state.places.size >= 2) "  Trajet" else "  Ajouter lieux",
+                                    maxLines = 1,
+                                )
+                            }
+                        }
                     }
                 }
             }
