@@ -108,7 +108,7 @@ L'injection des dépendances est volontairement manuelle pour garder le projet s
 
 ## État actuel
 
-La version actuelle `1.11.0` permet de :
+La version actuelle `1.12.0` permet de :
 
 - utiliser l'application sans créer de compte ni activer de protection ;
 - créer, modifier ou supprimer un profil local facultatif depuis une page dédiée ;
@@ -269,10 +269,10 @@ La politique est consultable hors connexion dans **Paramètres → Politique de 
 - Room sur SQLite
 - Navigation Compose
 - Gradle avec Java 21
-- `minSdk = 36`
+- `minSdk = 31` (Android 12)
 - `compileSdk = 36.1`
 
-Le niveau Android minimal élevé est un choix assumé pour l'usage personnel initial du projet.
+La compatibilité minimale couvre Android 12. Les fonctions introduites par Android 13 et Android 14, comme la permission de notifications et le type de service au premier plan `specialUse`, sont protégées par des vérifications de version ; les appareils plus anciens utilisent les API disponibles.
 
 ## Identité visuelle
 
@@ -289,10 +289,10 @@ Le générateur produit les ressources pour les densités `mdpi`, `hdpi`, `xhdpi
 ## Lancer le projet
 
 1. Ouvrir le dossier dans Android Studio.
-2. Installer le SDK Android 36 avec l'API mineure utilisée par le projet.
+2. Installer le SDK Android 36 avec l'API mineure utilisée par le projet (le SDK de compilation est indépendant de la version minimale Android 12).
 3. Utiliser Java 21 pour Gradle.
 4. Synchroniser les dépendances.
-5. Connecter un appareil Android 36 ou démarrer un émulateur compatible.
+5. Connecter un appareil Android 12 ou plus récent, ou démarrer un émulateur compatible.
 
 Commandes utiles :
 

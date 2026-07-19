@@ -67,7 +67,7 @@ class JourneyNotificationManager(
             .setWhen(activeLeg.startedAt.toEpochMilli())
             .setUsesChronometer(true)
 
-        if (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1) {
+        if (Build.VERSION.SDK_INT >= 36) {
             builder
                 .setRequestPromotedOngoing(true)
                 .setShortCriticalText(if (protected) "Trajet" else legDestination.take(7))
@@ -178,7 +178,8 @@ class JourneyNotificationManager(
     }
 
     private fun canPostNotifications(): Boolean =
-        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
             PackageManager.PERMISSION_GRANTED
 
     companion object {
@@ -198,11 +199,7 @@ class JourneyTrackingService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        startForeground(
-            JourneyNotificationManager.NOTIFICATION_ID,
-            notificationManager.buildStartingNotification(),
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
-        )
+        startWithCompatibleForegroundApi(notificationManager.buildStartingNotification())
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -214,11 +211,7 @@ class JourneyTrackingService : Service() {
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
             } else {
-                startForeground(
-                    JourneyNotificationManager.NOTIFICATION_ID,
-                    notification,
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
-                )
+                startWithCompatibleForegroundApi(notification)
             }
         }
         return START_STICKY
@@ -230,6 +223,19 @@ class JourneyTrackingService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    private fun startWithCompatibleForegroundApi(notification: Notification) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(
+                JourneyNotificationManager.NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            startForeground(JourneyNotificationManager.NOTIFICATION_ID, notification)
+        }
+    }
 
     companion object {
         fun start(context: Context) {

@@ -14,10 +14,10 @@ android {
 
     defaultConfig {
         applicationId = "com.mascode.itineraire"
-        minSdk = 36
+        minSdk = 31
         targetSdk = 36
-        versionCode = 17
-        versionName = "1.11.0"
+        versionCode = 18
+        versionName = "1.12.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
